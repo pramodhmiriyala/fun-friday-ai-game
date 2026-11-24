@@ -1,1 +1,1 @@
-# Fun Friday AI Game Arena backend
+# Fun Connect AI Game Arena backend

@@ -10,7 +10,7 @@ export const GENRES = [
   { name: 'Thriller', icon: '🕵️', color: '#6366f1' },
   { name: 'Horror',   icon: '👻', color: '#ef4444' },
   { name: 'Sci-Fi',   icon: '🛸', color: '#22d3ee' },
-  { name: 'Romance',  icon: '💘', color: '#ec4899' },
+  { name: 'Drama',    icon: '🎭', color: '#ec4899' },
 ];
 
 export interface Scene {

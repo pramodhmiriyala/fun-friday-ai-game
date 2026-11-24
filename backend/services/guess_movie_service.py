@@ -1,17 +1,32 @@
 """AI – Guess the Movie (Interactive AI Host) service.
-AI secretly selects a movie from the chosen language category, provides clues,
-answers limited participant questions with witty office-party banter, and judges guesses.
+AI secretly selects a movie from the chosen language category, provides clues (starting with the plot),
+answers participant questions with witty office-party banter, and judges guesses.
+Equipped with dynamic era/genre rotation and server-side memory to strictly prevent movie repetition.
 """
+import random
 import time
 import uuid
 
-from .llm import chat_json, AIUnavailable
+from .llm import chat_json, AIUnavailable, model_for
 
-CATEGORIES = {"Telugu", "Hindi", "English", "Tamil", "Malayalam", "Pan-Indian", "Pan-World"}
+CATEGORIES = {
+    "Telugu",
+    "Tamil",
+    "Hindi",
+    "Kannada",
+    "Marathi",
+    "Bengali",
+    "Odia",
+    "English",
+    "Malayalam",
+    "Pan-Indian",
+}
 DEFAULT_MAX_QUESTIONS = 5
 SESSION_TTL = 3600  # 1 hour
 
 _sessions: dict[str, dict] = {}
+_recently_played_movies: list[str] = []
+MAX_HISTORY = 80
 
 
 def _cleanup_sessions() -> None:
@@ -21,51 +36,110 @@ def _cleanup_sessions() -> None:
         _sessions.pop(sid, None)
 
 
-START_SYSTEM = """You are a witty, energetic AI game show host for an Indian IT office 'Fun Friday' party.
-Game: 'AI – Guess the Movie'.
+START_SYSTEM = """You are a witty, dynamic AI game host running 'AI – Guess the Movie' for an Indian IT corporate Fun Connect event.
+Participants represent different Indian regions, backgrounds, and experience levels, including senior leadership.
 
-Your job:
-1. Secretly pick ONE famous, widely-known movie from the requested language category that most Indian IT professionals have seen or heard of.
-2. Write Clue #1 — a vivid, engaging 1–2 sentence plot/character clue (like: "A man who loves engineering, a strict college environment, two friends, and a message that everyone remembers.").
+THE CORE GAMEPLAY:
+Whenever a language is selected, your job is to secretly pick one of the MOST POPULAR, iconic, widely-loved blockbuster or legendary mainstream movies in THAT selected language.
+You then generate Clue #1 as an engaging, clever, 2–3 sentence PLOT SYNOPSIS (storyline) of the movie.
+The core challenge for the teams: "Guess the movie from its plot!"
 
-RULES:
-- NEVER mention the movie title in Clue #1.
-- For Pan-Indian: pick massive cross-India blockbusters everyone across India knows (e.g., Baahubali, RRR, KGF, Pushpa, Kalki 2898 AD, Kantara, Vikram, Jailer, 3 Idiots, Dangal, Jawan, Salaar, etc.).
-- For Pan-World: pick globally iconic movies famous worldwide (e.g., Titanic, Avatar, Inception, Interstellar, The Dark Knight, Avengers: Endgame, Jurassic Park, Parasite, Harry Potter, Spider-Man, The Matrix, etc.).
-- Pick crowd-pleasing blockbusters or iconic classics (not obscure art films).
-- Never repeat any movie in the excluded list.
-- Return JSON ONLY:
-{"title": str, "year": int, "language": str, "clue": str}
+SUPPORTED LANGUAGES:
+- Telugu
+- Tamil
+- Hindi
+- Kannada
+- Marathi
+- Bengali
+- Odia
+- English
+- Malayalam
+- Pan-Indian
+
+STRICT RULES FOR MOVIE SELECTION:
+1. Pick strictly from the requested language category.
+2. Select a universally famous, widely-watched, blockbuster or all-time classic from that language that ordinary moviegoers immediately recognize once clues are revealed. Avoid obscure, niche, or forgotten art films.
+   Representative iconic examples:
+   - Telugu: Baahubali, RRR, Magadheera, Pokiri, Eega, Athadu, Pushpa, Mayabazar, Bommarillu, Ala Vaikunthapurramuloo.
+   - Tamil: Vikram, Jailer, Enthiran, Sivaji: The Boss, Ghilli, Anniyan, Super Deluxe, Padayappa, Master, Baashha.
+   - Hindi: 3 Idiots, Sholay, Dangal, Dilwale Dulhania Le Jayenge, Lagaan, Queen, Taare Zameen Par, Chak De! India, Munna Bhai M.B.B.S., Dhoom.
+   - Kannada: KGF, Kantara, 777 Charlie, Kirik Party, Lucia, Ugramm, Mr. and Mrs. Ramachari, Om.
+   - Marathi: Sairat, Natsamrat, Katyar Kaljat Ghusali, Natarang, Duniyadari, Baipan Bhaari Deva, Harishchandrachi Factory.
+   - Bengali: Feluda series (Sonar Kella), Bhooter Bhabishyat, Chokher Bali, Belaseshe, Praktan, Guptodhoner Sandhane, Baishe Srabon, Amazon Obhijaan.
+   - Odia: Daman, Agastya, Babu Bhaijaan, Sitaramanka Bahaghara Kalijugare, I Love You, Haata Dhari Chaaluthaa.
+   - English: Titanic, Inception, Avatar, Interstellar, The Dark Knight, Avengers: Endgame, Jurassic Park, The Matrix, Gladiator, Forrest Gump.
+   - Malayalam: Drishyam, Manichitrathazhu, Kumbalangi Nights, Lucifer, Premam, Bangalore Days, 2018, Aavesham, Premalu.
+   - Pan-Indian: Huge cross-India blockbusters everyone across India knows (e.g. Baahubali, RRR, KGF, Kantara, Pushpa, Kalki 2898 AD, Jawan, Dangal).
+3. CORPORATE WORKPLACE SAFETY:
+   - 100% clean, professional, and respectful for senior leadership.
+   - No adult/A-rated sexual themes, extreme gore, abusive language, alcohol/drug glorification, or sensitive religious/political controversies.
+4. CRITICAL ANTI-REPETITION:
+   - NEVER repeat any movie in the excluded/already-played list.
+   - Pick from different decades, directors, and genres. Do NOT keep picking the same top 1 or 2 blockbusters.
+
+STRICT RULES FOR CLUE #1 (THE PLOT):
+- Clue #1 MUST be a 2–3 sentence summary of the core PLOT / STORYLINE.
+- Describe the central situation, conflict, character goal, or dilemma in an intriguing way.
+- STRICT PROHIBITION: NEVER reveal the movie title, actor names, character names, director, or signature punchlines in Clue #1. The clue must be purely about the story so participants have to guess the movie based on its plot!
+
+OUTPUT FORMAT:
+Return valid JSON ONLY (no markdown formatting, no explanations):
+{
+  "title": "<Exact Official Movie Title>",
+  "year": <Release Year as integer>,
+  "language": "<Language of the movie>",
+  "clue": "<Clever 2-3 sentence Plot Synopsis without revealing title or names>"
+}
 """
+
+MOVIE_VARIETY_ANGLES = [
+    "a 1990s or 2000s timeless classic hit",
+    "a 2010-2019 massive box-office blockbuster",
+    "a recent 2021-2025 blockbuster sensation",
+    "a laugh-out-loud comedy or comedy-drama favorite",
+    "a high-octane action thriller or adventure epic",
+    "a beloved emotional family, romance, or friendship movie",
+    "a clever mystery, suspense, or fantasy entertainer",
+]
 
 
 def start_round(category: str, exclude: list[str], max_questions: int = DEFAULT_MAX_QUESTIONS) -> dict:
     """Start a new interactive AI movie round. Secret movie stays on the server."""
+    global _recently_played_movies
     _cleanup_sessions()
     if category not in CATEGORIES:
         category = "Hindi"
 
     max_q = max(3, min(10, int(max_questions or DEFAULT_MAX_QUESTIONS)))
-    exclude_str = ", ".join(exclude[:40]) if exclude else "none"
+    combined_exclude = list(dict.fromkeys(exclude + _recently_played_movies))[-50:]
+    exclude_str = ", ".join(combined_exclude[:40]) if combined_exclude else "none"
+    variety = random.choice(MOVIE_VARIETY_ANGLES)
 
     data = chat_json(
         START_SYSTEM,
         (
             f"Category: {category} movies ONLY. "
-            f"Pick 1 iconic {category} movie and write Clue #1. "
-            f"Already played — do NOT pick any of these: {exclude_str}."
+            f"Variety target: Pick {variety} in {category} cinema. "
+            f"Write Clue #1 as its plot summary. "
+            f"CRITICAL ANTI-REPETITION: Already played — do NOT pick any of these: {exclude_str}. "
+            f"Randomness seed: {time.time()}."
         ),
-        max_tokens=260,
+        max_tokens=320,
         temperature=1.0,
+        model=model_for("movie"),
     )
 
     title = str(data.get("title", "")).strip()[:80]
-    clue = str(data.get("clue", "")).strip()[:320]
+    clue = str(data.get("clue", "")).strip()[:380]
     year = data.get("year") if isinstance(data.get("year"), int) else None
     language = str(data.get("language", category)).strip()[:30] or category
 
     if not title or not clue:
         raise AIUnavailable("AI host could not pick a movie — please try again.")
+
+    _recently_played_movies.append(title)
+    if len(_recently_played_movies) > MAX_HISTORY:
+        _recently_played_movies = _recently_played_movies[-MAX_HISTORY:]
 
     session_id = uuid.uuid4().hex
     _sessions[session_id] = {
@@ -91,44 +165,66 @@ def start_round(category: str, exclude: list[str], max_questions: int = DEFAULT_
     }
 
 
-INTERACT_SYSTEM = """You are a witty, playful AI game host running 'AI – Guess the Movie' for an Indian IT office Fun Friday party.
-You know the SECRET MOVIE. The participant either:
-- Asks a question about the movie (e.g., "Is it related to college?", "Is it an action movie?", "Does Prabhas act in it?")
-- Or guesses the movie name (e.g., "Is it 3 Idiots?", "3 Idiots", "Baahubali 2")
+INTERACT_SYSTEM = """You are a witty, playful AI game host running 'AI – Guess the Movie' for an Indian IT office Fun Connect party.
+Colleagues and senior leadership from diverse Indian backgrounds are playing.
+You secretly know the chosen movie: {title} ({year}, {language}).
+
+The participant will either:
+A) GUESS the movie name (e.g., "Is it 3 Idiots?", "Baahubali", "Sairat", "Daman")
+B) ASK A QUESTION to deduce the movie from its plot (e.g., "Who is the lead actor?", "Who directed this?", "What is an iconic dialogue from it?", "Is it a sports movie?", "Which decade did it release?")
 
 RULES:
-1. Check if the participant is guessing the secret movie (be tolerant of minor spelling typos, missing 'The', or partial official subtitles like 'Baahubali' for 'Baahubali: The Beginning').
-2. If they GUESSED CORRECTLY:
-   - Set "is_correct": true, "is_guess": true.
-   - Reply with a hilarious, celebratory 1–2 sentence office-party reaction (e.g., "🎉 Correct! Someone in this team has successfully used their brain outside Jira!").
-3. If they GUESSED WRONGLY:
-   - Set "is_correct": false, "is_guess": true.
-   - Reply with a playful, light-hearted roast/reaction (1–2 sentences) WITHOUT revealing the movie title.
-4. If they ASKED A QUESTION:
-   - Set "is_correct": false, "is_guess": false.
-   - Answer DIRECTLY and HONESTLY!
-   - IMPORTANT: If they ask for the hero, heroine, lead actor/actress, director, music director, or release year, you MUST give the ACTUAL REAL NAME(S) or YEAR directly (e.g., "The hero is Prabhas and the heroine is Anushka Shetty! 😏" or "Directed by S. S. Rajamouli!"). Do NOT dodge or be vague!
-   - SONG / DIALOGUE RULE: If they ask for a famous song or dialogue, quote a real, iconic song line or famous dialogue from the movie IN THAT MOVIE'S ORIGINAL LANGUAGE (written in easy-to-read Romanized/English letters, e.g., Telugu: "Thaggede Le!", Hindi: "All Izz Well!", Tamil: "En vazhi thani vazhi!", Malayalam: "Savari Giri Giri!", English: "Why so serious?") — NEVER translate a famous regional dialogue into plain English, and NEVER include the movie title if the title is in the line!
-   - Keep it punchy (1–2 sentences) with a witty remark, while NEVER revealing the movie title itself.
-5. NEVER reveal the movie title unless is_correct is true. Keep replies punchy, office-safe, and fun.
 
-Return JSON ONLY:
-{"is_correct": bool, "is_guess": bool, "reply": str}
+1. GUESS CHECKING:
+   - Check if the participant's guess matches the secret movie title.
+   - Be tolerant of minor spelling typos, missing articles ("The", "A"), or official subtitles/parts (e.g., 'Baahubali' for 'Baahubali 2').
+   - If CORRECT:
+     * Set "is_correct": true, "is_guess": true.
+     * Reply with an energetic, hilarious 1–2 sentence celebratory shout-out praising the team's movie IQ!
+   - If WRONG:
+     * Set "is_correct": false, "is_guess": true.
+     * Reply with a playful, friendly roast/reaction (1–2 sentences) WITHOUT revealing the movie title.
+
+2. ANSWERING PARTICIPANT QUESTIONS:
+   - Set "is_correct": false, "is_guess": false.
+   - Answer HONESTLY, DIRECTLY, and ACCURATELY based on the secret movie:
+     * LEAD ACTORS / CAST: If asked about the hero, heroine, or lead actors, state their REAL celebrity names directly and clearly!
+     * DIRECTOR / MUSIC COMPOSER: If asked, provide their REAL names directly!
+     * RELEASE YEAR / DECADE: State the exact release year or decade accurately!
+     * FAMOUS DIALOGUE / SONG: Quote an iconic dialogue or famous song line from this movie in the movie's ORIGINAL LANGUAGE using easy-to-read Romanized English script (do NOT translate regional dialogue into English). NEVER include the movie title if the title appears in the dialogue!
+     * PLOT / GENRE / SETTING: Answer questions about the plot, genre, or storyline truthfully to guide their deduction.
+   - NEVER give evasive or vague answers when asked direct factual questions (hero, heroine, director, year, dialogue). Help the team deduce the movie while NEVER stating the movie title itself!
+
+3. CORPORATE WORKPLACE SAFETY:
+   - Keep all banter 100% clean, respectful, inclusive, and suitable for senior leadership.
+   - No adult, sexual, violent, abusive, alcohol, or drug content. No personal, political, religious, or appraisal jokes.
+   - NEVER reveal the movie title unless "is_correct" is true.
+
+OUTPUT FORMAT:
+Return valid JSON ONLY (no markdown formatting, no explanations):
+{
+  "is_correct": true | false,
+  "is_guess": true | false,
+  "reply": "<Your witty 1-2 sentence response or factual answer>"
+}
 """
 
 CLUE_SYSTEM = """You are a witty AI game host running 'AI – Guess the Movie' for an Indian IT office party.
-The team asked for ANOTHER CLUE for the secret movie.
+The team is trying to guess the secret movie from its plot and asked for ANOTHER CLUE.
 
 PROGRESSIVE CLUE RULES:
-- Give ONE new clue (1–2 sentences) that is clearly more helpful than earlier clues.
-- Clue #2: Include the Director, Music Director, release era, or an iconic song/scene reference.
-- Clue #3+: Include the Hero, Heroine, or lead cast member names so the team can identify the movie!
-- Do NOT repeat any earlier clue.
+- Give ONE new clue (1–2 sentences) that makes the movie progressively easier to identify:
+  * Clue #2: Reveal the Director, Music Director, release year/decade, or an iconic setting/song reference.
+  * Clue #3+: Reveal the lead Hero, Heroine, or key star cast, or an iconic trademark scene!
+- Do NOT repeat the plot synopsis or clues already given.
 - NEVER reveal the movie title itself.
-- Keep it fun and intriguing.
+- Keep it fun, punchy, and office-friendly.
 
-Return JSON ONLY:
-{"clue": str}
+OUTPUT FORMAT:
+Return valid JSON ONLY (no markdown formatting, no explanations):
+{
+  "clue": "<New progressive clue without mentioning the movie title>"
+}
 """
 
 
@@ -170,8 +266,9 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
                 f"Clues already given:\n{prev_clues}\n"
                 f"Generate Clue #{len(session['clues']) + 1}."
             ),
-            max_tokens=180,
+            max_tokens=220,
             temperature=0.9,
+            model=model_for("movie"),
         )
         clue = str(data.get("clue", "")).strip()[:320]
         if not clue:
@@ -212,8 +309,9 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
             f"Conversation so far:\n{history_text}\n"
             f"Participant says: \"{msg}\"{extra_rule}"
         ),
-        max_tokens=220,
+        max_tokens=260,
         temperature=0.85,
+        model=model_for("movie"),
     )
 
     is_correct = bool(data.get("is_correct", False))
@@ -227,7 +325,7 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
         session["solved"] = True
         return {
             "is_correct": True,
-            "is_guess": True,
+            "is_guess": true,
             "kind": "win",
             "reply": reply,
             "questions_left": session["questions_left"],

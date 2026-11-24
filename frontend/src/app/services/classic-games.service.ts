@@ -90,7 +90,10 @@ export class ClassicGamesService {
     this.rapidLoading.set(true);
     this.rapidError.set(null);
     try {
-      const r = await this.api.rapidQuestions(10, this.state().rapid.usedQs);
+      const rs = this.state().rapid;
+      // exclude questions still queued + recently played so batches never overlap
+      const upcoming = rs.questions.slice(rs.pos).map((q) => q.q);
+      const r = await this.api.rapidQuestions(10, [...upcoming, ...rs.usedQs.slice(-20)]);
       if (append) {
         const cur = this.state().rapid;
         this.patch('rapid', { questions: [...cur.questions.slice(cur.pos), ...r.questions], pos: 0 });
@@ -98,7 +101,13 @@ export class ClassicGamesService {
         this.patch('rapid', { questions: r.questions, pos: 0, selected: null });
       }
     } catch (e) { this.rapidError.set((e as Error).message); }
-    finally { this.rapidLoading.set(false); }
+    finally {
+      this.rapidLoading.set(false);
+      // if the round was paused while waiting for questions, continue the clock
+      if (this.state().rapid.phase === 'live' && this.rapidQ() && !this.rapidTimer.running() && this.rapidTimer.remainingMs() > 0) {
+        this.rapidTimer.resume();
+      }
+    }
   }
 
   async fetchPersonCards() {
@@ -121,6 +130,7 @@ export class ClassicGamesService {
     this.sound.whoosh();
     this.patch('rapid', { phase: 'live', correct: 0, wrong: 0, selected: null });
     this.rapidTimer.start(RAPID_SECONDS);
+    this.fetchRapidQuestions(true); // warm the next batch right away so questions never run out
   }
 
   rapidChoose(optionIndex: number) {
@@ -150,10 +160,15 @@ export class ClassicGamesService {
 
   rapidNext() {
     clearTimeout(this.rapidNextTimeout);
+    const cur = this.rapidQ();
+    if (cur && !this.state().rapid.usedQs.includes(cur.q)) {
+      this.patch('rapid', { usedQs: [...this.state().rapid.usedQs, cur.q].slice(-40) }); // passed questions count as played too
+    }
     const nextPos = this.state().rapid.pos + 1;
     this.patch('rapid', { pos: nextPos, selected: null });
     const remaining = this.state().rapid.questions.length - nextPos;
-    if (remaining <= 2) this.fetchRapidQuestions(true);
+    if (remaining <= 5) this.fetchRapidQuestions(true); // prefetch early (AI takes ~10-15s)
+    if (remaining <= 0 && this.state().rapid.phase === 'live') this.rapidTimer.pause(); // fair: clock waits for the AI
   }
 
   rapidStop() {
@@ -193,6 +208,8 @@ export class ClassicGamesService {
   puzzleReveal() { clearInterval(this.puzzleLoop); this.sound.reveal(); this.patch('puzzle', { phase: 'revealed' }); }
   puzzleNext() { clearInterval(this.puzzleLoop); this.patch('puzzle', { pos: this.state().puzzle.pos + 1, phase: 'idle', open: [], showHint: false }); }
 
+  private nextTeamCards: PersonCard[] = [];
+
   /* ── Guess the Person ───────────────────────────────────────────────────── */
   personClue() {
     const p = this.state().person;
@@ -209,10 +226,37 @@ export class ClassicGamesService {
       usedNames: name ? [...this.state().person.usedNames, name].slice(-30) : this.state().person.usedNames,
     });
   }
-  personReveal() { this.sound.reveal(); this.patch('person', { revealed: true }); }
+  personReveal() {
+    this.sound.reveal();
+    const name = this.person()?.name ?? '';
+    this.patch('person', {
+      revealed: true,
+      usedNames: name ? [...this.state().person.usedNames, name].slice(-40) : this.state().person.usedNames,
+    });
+  }
   personNext() {
-    this.patch('person', { pos: this.state().person.pos + 1, clues: 1, revealed: false });
     const p = this.state().person;
-    if (p.people.length - p.pos <= 1) this.fetchPersonCards();
+    const nextPos = p.pos + 1;
+    // Pre-fetch next team's riddles while current team is on Question 4 or 5:
+    if (nextPos >= 3 && this.nextTeamCards.length === 0) {
+      const allCurrent = p.people.map(x => x.name).filter(Boolean);
+      const combinedExclude = Array.from(new Set([...p.usedNames, ...allCurrent])).slice(-40);
+      this.api.personCards(combinedExclude).then(res => {
+        this.nextTeamCards = res.people;
+      }).catch(() => {});
+    }
+
+    if (nextPos >= p.people.length) {
+      // 5 questions completed for this team! Swap to pre-fetched cards instantly (0s wait)
+      if (this.nextTeamCards.length > 0) {
+        const fresh = this.nextTeamCards;
+        this.nextTeamCards = [];
+        this.patch('person', { people: fresh, pos: 0, clues: 1, revealed: false });
+      } else {
+        this.fetchPersonCards();
+      }
+    } else {
+      this.patch('person', { pos: nextPos, clues: 1, revealed: false });
+    }
   }
 }

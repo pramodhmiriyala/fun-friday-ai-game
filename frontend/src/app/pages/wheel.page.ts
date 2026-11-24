@@ -27,7 +27,7 @@ import { TeamPickerComponent } from '../components/team-picker.component';
           <div class="g-icon">🎮</div>
           <div class="g-body">
             <div class="g-title">Pick a Game</div>
-            <div class="g-desc">Spin this <b>to pick the next game</b> from all 7 available games. Let fate decide the fun!</div>
+            <div class="g-desc">Spin this <b>to pick the next game</b> from all available games. Let fate decide the fun!</div>
             <div class="g-when">📌 Use when: You've finished a round and want to randomly choose the next activity</div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-"""Fun Friday AI Game Arena - Flask API.
+"""Fun Connect AI Game Arena - Flask API.
 
 Run:  python app.py   (dev)     |   gunicorn app:app   (prod)
 """
@@ -12,8 +12,8 @@ from flask_cors import CORS
 
 load_dotenv()
 
-from services import describe_service, guess_movie_service, movie_director_service, rapid_fire_service, guess_person_service, truth_or_dare_service  # noqa: E402
-from services.llm import ai_configured, AIUnavailable, chat_json  # noqa: E402
+from services import describe_service, guess_movie_service, movie_director_service, rapid_fire_service, guess_person_service, truth_or_dare_service, panic_service, nolaugh_service  # noqa: E402
+from services.llm import ai_configured, AIUnavailable, chat_json, model_for  # noqa: E402
 
 STATIC_DIR = os.getenv(
     "STATIC_DIR",
@@ -283,33 +283,36 @@ def voting_generate():
 
 @app.post("/api/person/generate")
 def person_generate():
+    """'Who Am I?' (Crazy GK & Tech Clues) - AI Podupu Kathalu (Riddles) progressive clues."""
     d = body()
-    exclude_str = clean_list(d.get("exclude"))
-    SYSTEM = (
-        "You generate 'Who Am I?' celebrity clue cards for an Indian office party game. "
-        "Return JSON: {\"people\": [{\"name\": str, \"clues\": [str, str, str, str, str]}]}. "
-        "Rules: "
-        "- Pick famous people everyone in India knows: cricketers, Bollywood stars, tech CEOs, politicians, scientists, Telugu/Tamil film stars. "
-        "- 5 clues, from VAGUE (clue 1) to OBVIOUS (clue 5). "
-        "- NEVER mention the name in any clue. "
-        "- Each clue: max 12 words, one fact per clue."
-    )
     try:
-        data = chat_json(SYSTEM,
-            f"Generate 5 'Who Am I?' cards. Already used: {', '.join(exclude_str[:20]) or 'none'}.",
-            max_tokens=800)
-        people = []
-        for p in data.get("people", []):
-            name = str(p.get("name","")).strip()[:60]
-            clues = [str(c).strip()[:150] for c in p.get("clues",[]) if str(c).strip()][:5]
-            if name and len(clues) >= 3:
-                people.append({"name": name, "clues": clues})
-        if people:
-            return jsonify(people=people, source="ai")
+        people, src = guess_person_service.generate_people(
+            clamp_count(d.get("count"), default=5, hi=8),
+            clean_list(d.get("exclude")),
+        )
+        return jsonify(people=people, source=src)
     except AIUnavailable as e:
         return jsonify(error=f"AI unavailable: {e}"), 503
-    return jsonify(error="No people generated"), 503
 
+
+@app.post("/api/panic/generate")
+def panic_generate():
+    d = body()
+    try:
+        tasks, src = panic_service.generate_tasks(clamp_count(d.get("count"), default=5, hi=8), clean_list(d.get("exclude")))
+    except AIUnavailable as e:
+        return jsonify(error=f"AI unavailable: {e}"), 503
+    return jsonify(tasks=tasks, source=src)
+
+
+@app.post("/api/no-laugh/generate")
+def nolaugh_generate():
+    d = body()
+    try:
+        items, src = nolaugh_service.generate_items(clamp_count(d.get("count"), default=4, hi=6), clean_list(d.get("exclude")))
+    except AIUnavailable as e:
+        return jsonify(error=f"AI unavailable: {e}"), 503
+    return jsonify(items=items, source=src)
 
 # ---- Single-server SPA fallback (serve Angular frontend) ------------------
 @app.route("/", defaults={"path": ""})
@@ -322,7 +325,7 @@ def serve_spa(path):
         if path and os.path.exists(file_path):
             return send_from_directory(STATIC_DIR, path)
         return send_from_directory(STATIC_DIR, "index.html")
-    return jsonify(message="Fun Friday API is running. Frontend static build not found."), 200
+    return jsonify(message="Fun Connect API is running. Frontend static build not found."), 200
 
 
 if __name__ == "__main__":

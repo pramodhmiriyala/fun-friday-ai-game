@@ -19,7 +19,7 @@ def _get_client():
     if not key:
         raise AIUnavailable("OPENAI_API_KEY is not configured")
     from openai import OpenAI
-    _client = OpenAI(api_key=key, timeout=25.0, max_retries=1)
+    _client = OpenAI(api_key=key, timeout=60.0, max_retries=0)
     return _client
 
 
@@ -27,17 +27,38 @@ def ai_configured() -> bool:
     return bool(os.getenv("OPENAI_API_KEY", "").strip())
 
 
-def chat_json(system: str, user: str, max_tokens: int = 700, temperature: float = 1.0) -> dict:
+def model_for(game: str) -> str:
+    """Per-game model override: MODEL_<GAME> env var (e.g. MODEL_PERSON), else defaults."""
+    return os.getenv("MODEL_" + game.upper(), "").strip() or MODEL
+
+
+def chat_json(system: str, user: str, max_tokens: int = 700, temperature: float = 1.0, model: str | None = None) -> dict:
     """Single JSON-mode completion with a hard token cap (cost control)."""
     client = _get_client()
+    m = model or MODEL
+    kwargs = {"max_completion_tokens": max_tokens}
+    if not m.startswith(("gpt-3", "gpt-4")):
+        # Newer models (gpt-5/6/o-series): reasoning uses part of the budget and only default temperature is allowed.
+        kwargs["max_completion_tokens"] = max_tokens * 4 + 500
+        kwargs["reasoning_effort"] = "low"  # keep it fast for a live game
+    else:
+        kwargs["temperature"] = temperature
     try:
-        resp = client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-            response_format={"type": "json_object"},
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
+        def _call(kw):
+            return client.chat.completions.create(
+                model=m,
+                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                response_format={"type": "json_object"},
+                **kw,
+            )
+        try:
+            resp = _call(kwargs)
+        except Exception as e1:
+            if "reasoning_effort" in str(e1) and "reasoning_effort" in kwargs:
+                kwargs.pop("reasoning_effort")
+                resp = _call(kwargs)
+            else:
+                raise
         return json.loads(resp.choices[0].message.content)
     except AIUnavailable:
         raise

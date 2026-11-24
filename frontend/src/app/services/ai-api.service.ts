@@ -6,7 +6,7 @@ export interface DescribeCard { word: string; restricted: string[]; }
 export interface TruthOrDareItem {
   prompt: string;
   category: string;
-  type: 'truth' | 'dare';
+  type: 'truth' | 'dare' | 'pass';
 }
 export interface JudgeResult { team_id: string; score: number; verdict: string; }
 export interface Movie {
@@ -51,7 +51,9 @@ export interface RapidQuestion {
   correct: number;
 }
 
-export interface PersonCard { name: string; clues: string[]; }
+export interface PersonCard { name: string; clues: string[]; category?: string; funny_reveal?: string; }
+export interface PanicTask { task: string; type: string; emoji: string; }
+export interface NoLaughItem { text: string; kind: string; delivery: string; }
 
 export type AiSource = 'ai' | 'fallback' | 'cache';
 
@@ -101,6 +103,12 @@ export class AiApiService {
   }
   votingPrompts(exclude: string[]) {
     return this.post<{ prompts: string[]; source: AiSource }>('/voting/generate', { exclude });
+  }
+  panicTasks(exclude: string[]) {
+    return this.post<{ tasks: PanicTask[]; source: AiSource }>('/panic/generate', { count: 5, exclude });
+  }
+  noLaughItems(exclude: string[]) {
+    return this.post<{ items: NoLaughItem[]; source: AiSource }>('/no-laugh/generate', { count: 4, exclude });
   }
   personCards(exclude: string[]) {
     return this.post<{ people: PersonCard[]; source: AiSource }>('/person/generate', { exclude });

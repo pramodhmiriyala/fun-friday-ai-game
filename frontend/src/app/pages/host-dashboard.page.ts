@@ -6,22 +6,20 @@ import { SpinWheelComponent } from '../components/spin-wheel.component';
 import { ClassicGameComponent } from '../games/classic-game.component';
 import { TruthOrDareComponent } from '../games/truth-or-dare.component';
 import { GuessMovieComponent } from '../games/guess-movie.component';
-import { MovieDirectorComponent } from '../games/movie-director.component';
 import { AiApiService } from '../services/ai-api.service';
 import { ClassicGamesService } from '../services/classic-games.service';
 import { TruthOrDareService } from '../services/truth-or-dare.service';
 import { GuessMovieService } from '../services/guess-movie.service';
-import { MovieDirectorService } from '../services/movie-director.service';
 import { ScoringService } from '../services/scoring.service';
 import { TeamService } from '../services/team.service';
 import { TeamPickerComponent } from '../components/team-picker.component';
 
-type Tab = 'truth-dare' | 'director' | 'guess' | 'rapid' | 'puzzle' | 'person' | 'wheel';
+type Tab = 'truth-dare' | 'guess' | 'rapid' | 'puzzle' | 'person' | 'wheel';
 
 @Component({
   selector: 'app-host-dashboard',
   imports: [RouterLink, LeaderboardComponent, ScorePanelComponent, SpinWheelComponent, ClassicGameComponent,
-    TruthOrDareComponent, GuessMovieComponent, MovieDirectorComponent, TeamPickerComponent],
+    TruthOrDareComponent, GuessMovieComponent, TeamPickerComponent],
   template: `
     <section class="page host">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
@@ -48,19 +46,16 @@ type Tab = 'truth-dare' | 'director' | 'guess' | 'rapid' | 'puzzle' | 'person' |
             <!-- Per-game tip banner -->
             @switch (tab()) {
               @case ('guess') {
-                <div class="tip-bar tip-ai">🎬 <b>AI Guess the Movie.</b> Pick Telugu, Hindi, English, Tamil, Malayalam, Pan-Indian or Pan-World. AI secretly chooses a movie, gives clues, and answers limited team questions live!</div>
+                <div class="tip-bar tip-ai">🎬 <b>AI Guess the Movie.</b> Pick Telugu, Tamil, Hindi, Kannada, Marathi, Bengali, Odia, English, etc. AI secretly chooses a movie, reveals the plot as Clue #1, and answers team questions live!</div>
               }
               @case ('rapid') {
                 <div class="tip-bar tip-timer">⚡ <b>AI Rapid Fire MCQs.</b> Select the active team and press START. AI generates 4-option MCQs — click A/B/C/D for instant scoring (+5 pts each) in 60 seconds!</div>
               }
               @case ('person') {
-                <div class="tip-bar tip-ai">🕵️ <b>AI Who Am I?</b> AI generates 5 progressive clues about a famous person. Reveal one by one — fewer clues = more points!</div>
+                <div class="tip-bar tip-ai">🕵️ <b>AI Who Am I?</b> AI generates 5 progressive clues about a famous person or object. Reveal one by one — fewer clues = more points!</div>
               }
               @case ('truth-dare') {
-                <div class="tip-bar tip-ai">🎭 <b>AI Truth or Dare.</b> Select player on stage → Pick Truth or Dare. Hilarious office questions & 20s team challenges. Pure fun, no points!</div>
-              }
-              @case ('director') {
-                <div class="tip-bar tip-ai">🎥 <b>AI Movie Director.</b> Enter any office situation — AI writes a hilarious, dramatic movie scene with comedy punchlines!</div>
+                <div class="tip-bar tip-ai">🎭 <b>AI Truth or Dare.</b> Select player on stage → Spin Wheel. Hilarious office questions & 20s team challenges. Pure fun, no points!</div>
               }
               @case ('puzzle') {
                 <div class="tip-bar tip-vote">🧩 <b>Bonus Round — Picture Puzzle.</b> Tiles peel away every few seconds. First team to shout the answer wins!</div>
@@ -71,7 +66,6 @@ type Tab = 'truth-dare' | 'director' | 'guess' | 'rapid' | 'puzzle' | 'person' |
             }
             @switch (tab()) {
               @case ('truth-dare') { <app-truth-or-dare [embedded]="true" /> }
-              @case ('director') { <app-movie-director [embedded]="true" /> }
               @case ('guess') { <app-guess-movie [embedded]="true" /> }
               @case ('rapid') { <app-classic-game [embedded]="true" gameId="rapid" /> }
               @case ('puzzle') { <app-classic-game [embedded]="true" gameId="puzzle" /> }
@@ -84,7 +78,7 @@ type Tab = 'truth-dare' | 'director' | 'guess' | 'rapid' | 'puzzle' | 'person' |
           <div class="glass glass-pad mb-3">
             <h3 class="h5">📡 Status</h3>
             <div>Backend: <b [class.ok]="api.online()" [class.bad]="!api.online()">{{ api.online() ? 'online' : 'offline' }}</b></div>
-            <div>AI: <b [class.ok]="api.aiEnabled()">{{ api.aiEnabled() ? 'GPT-4o-mini active' : 'built-in content (no API key)' }}</b></div>
+            <div>AI: <b [class.ok]="api.aiEnabled()">{{ api.aiEnabled() ? 'AI Active' : 'built-in content (no API key)' }}</b></div>
             <button class="btn-ghost btn-sm-x mt-2" (click)="api.health()" id="btn-health">↻ Re-check</button>
           </div>
           <div class="glass glass-pad mb-3"><h3 class="h5">🎤 Team on stage</h3><app-team-picker /></div>
@@ -118,22 +112,23 @@ export class HostDashboardComponent {
   private teams = inject(TeamService);
   private scoring = inject(ScoringService);
   private truthDare = inject(TruthOrDareService);
-  private director = inject(MovieDirectorService);
   private guess = inject(GuessMovieService);
   private classic = inject(ClassicGamesService);
   readonly tab = signal<Tab>('truth-dare');
   readonly tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'truth-dare', label: 'Truth or Dare', icon: '🎭' }, { id: 'director', label: 'Movie Director', icon: '🎬' },
-    { id: 'guess', label: 'Guess Movie', icon: '🎞️' }, { id: 'rapid', label: 'Rapid Fire', icon: '⚡' },
+    { id: 'truth-dare', label: 'Truth or Dare', icon: '🎭' },
+    { id: 'guess', label: 'Guess Movie', icon: '🎞️' },
+    { id: 'rapid', label: 'Rapid Fire', icon: '⚡' },
     { id: 'puzzle', label: 'Puzzle', icon: '🧩' },
-    { id: 'person', label: 'Person', icon: '🕵️' }, { id: 'wheel', label: 'Wheel', icon: '🎡' },
+    { id: 'person', label: 'Person', icon: '🕵️' },
+    { id: 'wheel', label: 'Wheel', icon: '🎡' },
   ];
 
-  openProjector() { window.open('/', 'funfriday-projector', 'popup=no'); }
+  openProjector() { window.open('/', 'funconnect-projector', 'popup=no'); }
   confirmThen(msg: string, fn: () => void) { if (confirm(msg)) fn.call(this); }
   resetScores() { this.scoring.resetScores(); }
   resetGames() {
-    this.truthDare.reset(); this.director.resetGame(); this.guess.resetGame();
+    this.truthDare.reset(); this.guess.resetGame();
     this.classic.rapidStop();
   }
   resetAll() { this.resetScores(); this.resetGames(); this.teams.clear(); }

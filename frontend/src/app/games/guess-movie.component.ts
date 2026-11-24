@@ -184,10 +184,11 @@ import { TeamService } from '../services/team.service';
           <div class="glass glass-pad howto">
             <div class="ht-title">🤖 How to Play</div>
             <ol class="ht-list muted">
-              <li>Pick a category: <b>Telugu, Hindi, English, Tamil, Malayalam, Pan-Indian, or Pan-World</b></li>
-              <li>AI secretly picks a movie & gives <b>Clue #1</b></li>
-              <li>Tap <b>Quick ask</b> for Hero/Heroine or Director, or type any question/guess</li>
-              <li>Click <b>💡 Ask AI for Another Clue</b> — later clues reveal cast & crew!</li>
+              <li>Pick a language: <b>Telugu, Tamil, Hindi, Kannada, Marathi, Bengali, Odia, English, etc.</b></li>
+              <li>AI secretly picks a popular movie & reveals <b>Clue #1: The Story / Plot</b>!</li>
+              <li>Try to guess the movie name from its plot!</li>
+              <li>Tap <b>Quick ask</b> for Hero/Heroine, Director, or famous dialogue in original language</li>
+              <li>Click <b>💡 Ask AI for Another Clue</b> for more hints!</li>
               <li>Guess early to win maximum points! 🏆</li>
             </ol>
           </div>

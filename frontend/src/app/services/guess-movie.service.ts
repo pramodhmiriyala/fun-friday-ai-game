@@ -6,16 +6,29 @@ import { ScoringService } from './scoring.service';
 import { SoundService } from './sound.service';
 import { TeamService } from './team.service';
 
-export type MovieCategory = 'Telugu' | 'Hindi' | 'English' | 'Tamil' | 'Malayalam' | 'Pan-Indian' | 'Pan-World';
+export type MovieCategory =
+  | 'Telugu'
+  | 'Tamil'
+  | 'Hindi'
+  | 'Kannada'
+  | 'Marathi'
+  | 'Bengali'
+  | 'Odia'
+  | 'English'
+  | 'Malayalam'
+  | 'Pan-Indian';
 
 export const MOVIE_CATEGORIES: { id: MovieCategory; label: string; icon: string }[] = [
   { id: 'Telugu',     label: 'Telugu',     icon: '🔥' },
-  { id: 'Hindi',      label: 'Hindi',      icon: '🎬' },
-  { id: 'English',    label: 'English',    icon: '🌎' },
   { id: 'Tamil',      label: 'Tamil',      icon: '⚡' },
+  { id: 'Hindi',      label: 'Hindi',      icon: '🎬' },
+  { id: 'Kannada',    label: 'Kannada',    icon: '👑' },
+  { id: 'Marathi',    label: 'Marathi',    icon: '🚩' },
+  { id: 'Bengali',    label: 'Bengali',    icon: '🎭' },
+  { id: 'Odia',       label: 'Odia',       icon: '🛕' },
+  { id: 'English',    label: 'English',    icon: '🌎' },
   { id: 'Malayalam',  label: 'Malayalam',  icon: '🌴' },
   { id: 'Pan-Indian', label: 'Pan-Indian', icon: '🇮🇳' },
-  { id: 'Pan-World',  label: 'Pan-World',  icon: '🌍' },
 ];
 
 export interface ChatTurn {

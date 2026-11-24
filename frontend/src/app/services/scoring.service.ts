@@ -20,7 +20,7 @@ export interface Standing {
 
 export const GAME_LABELS: Record<string, string> = {
   describe: 'Describe It', director: 'Movie Director', guess: 'Guess the Movie',
-  rapid: 'Rapid Fire', voting: 'Team Voting', puzzle: 'Picture Puzzle', person: 'Guess the Person',
+  rapid: 'Rapid Fire', voting: 'Team Voting', puzzle: 'Picture Puzzle', person: 'Who Am I?', panic: 'Panic Defuse', nolaugh: 'Do Not Laugh',
   wheel: 'Bonus Wheel', manual: 'Host Adjust',
 };
 

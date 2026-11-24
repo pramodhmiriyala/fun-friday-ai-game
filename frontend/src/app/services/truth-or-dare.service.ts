@@ -51,6 +51,20 @@ export class TruthOrDareService {
     }
   }
 
+  pass() {
+    this.sound.fanfare();
+    this.confetti.burst(0.5, 0.45, 80);
+    this.state.update((s) => ({
+      ...s,
+      current: {
+        prompt: "PASS! Turn skipped with zero penalty.",
+        category: "Pass",
+        type: "pass",
+      },
+      totalPlayed: s.totalPlayed + 1,
+    }));
+  }
+
   applaud() {
     this.sound.fanfare();
     this.confetti.burst(0.5, 0.45, 120);

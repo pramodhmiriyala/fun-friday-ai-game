@@ -6,7 +6,8 @@ import { WritableSignal, effect, signal } from '@angular/core';
  * Must be called in an injection context (e.g. a service field initializer).
  */
 export function persisted<T>(key: string, initial: T): WritableSignal<T> {
-  const storageKey = 'funfriday.' + key;
+  const storageKey = 'funconnect.' + key;
+  const legacyKey = 'funfriday.' + key;
   const merge = (parsed: unknown): T =>
     initial && typeof initial === 'object' && !Array.isArray(initial)
       ? ({ ...(initial as object), ...(parsed as object) } as T)
@@ -15,7 +16,7 @@ export function persisted<T>(key: string, initial: T): WritableSignal<T> {
   let lastRaw: string | null = null;
   let start = initial;
   try {
-    lastRaw = localStorage.getItem(storageKey);
+    lastRaw = localStorage.getItem(storageKey) || localStorage.getItem(legacyKey);
     if (lastRaw) start = merge(JSON.parse(lastRaw));
   } catch {
     /* corrupted or unavailable storage: fall back to defaults */

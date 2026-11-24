@@ -11,7 +11,7 @@ import { TeamService } from './services/team.service';
   template: `
     <app-animated-bg />
     <nav class="nav glass" aria-label="Main">
-      <a routerLink="/" class="brand" id="nav-brand"><span class="logo">🎮</span><span class="display grad-text">FUN FRIDAY</span></a>
+      <a routerLink="/" class="brand" id="nav-brand"><span class="logo">🎮</span><span class="display grad-text">FUN CONNECT</span></a>
       <div class="links">
         <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }" id="nav-home">Home</a>
         <a routerLink="/teams" routerLinkActive="on" id="nav-teams">Teams</a>
@@ -33,7 +33,7 @@ import { TeamService } from './services/team.service';
           {{ sound.muted() ? '🔇 SFX Off' : '🔊 SFX' }}
         </button>
         <span class="dot" [class.ok]="api.online()" [class.bad]="api.online() === false"
-              [title]="api.online() ? (api.aiEnabled() ? 'Server online · GPT-4o-mini ready' : 'Server online · using built-in content (no API key)') : 'Backend offline'"></span>
+              [title]="api.online() ? (api.aiEnabled() ? 'Server online · AI ready' : 'Server online · using built-in content (no API key)') : 'Backend offline'"></span>
       </div>
     </nav>
     <main><router-outlet /></main>

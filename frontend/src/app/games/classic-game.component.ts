@@ -133,7 +133,7 @@ import { TeamService } from '../services/team.service';
           <div class="stage glass">
             <div class="text-center w-100">
               @if (c.person(); as person) {
-                <div class="lbl">🤖 WHO AM I? · CLUE {{ pr.clues }} OF {{ person.clues.length }}</div>
+                <div class="lbl">🎯 RIDDLE {{ pr.pos + 1 }} OF {{ c.state().person.people.length || 5 }} · {{ person.category ?? 'RIDDLE' }} · CLUE {{ pr.clues }} OF {{ person.clues.length }}</div>
                 <div class="clues">
                   @for (cl of person.clues.slice(0, pr.clues); track $index) {
                     <div class="clue pop-in glass"><span class="cn">{{ $index + 1 }}</span>{{ cl }}</div>
@@ -141,6 +141,7 @@ import { TeamService } from '../services/team.service';
                 </div>
                 @if (pr.revealed) {
                   <div class="a pop-in display grad-text">{{ person.name }}</div>
+                  @if (person.funny_reveal) { <div class="muted mt-2 pop-in">😂 {{ person.funny_reveal }}</div> }
                 } @else { <div class="ic sil">🕵️</div> }
                 <div class="muted">Prize now: <b class="text-white">{{ c.personPrize() }} pts</b></div>
                 <div class="actions">
@@ -149,7 +150,12 @@ import { TeamService } from '../services/team.service';
                     <button class="btn-neon btn-green" (click)="c.personSolve()" id="btn-person-solve">✅ Team guessed it</button>
                     <button class="btn-neon btn-pink" (click)="c.personReveal()" id="btn-person-reveal">👁 Reveal</button>
                   } @else {
-                    <button class="btn-neon btn-lg-x" (click)="c.personNext()" id="btn-person-next">➡ Next person</button>
+                    @if (pr.pos + 1 >= (c.state().person.people.length || 5)) {
+                      <div class="badge-pill my-3">🎉 5 Riddles completed for {{ teams.activeTeam()?.name ?? 'this team' }}! Select the next team above, then start:</div>
+                      <button class="btn-neon btn-lg-x pulse" (click)="c.personNext()" id="btn-person-next">➡ Next Team's Turn (5 Fresh Riddles)</button>
+                    } @else {
+                      <button class="btn-neon btn-lg-x" (click)="c.personNext()" id="btn-person-next">➡ Next Riddle ({{ pr.pos + 2 }} of 5)</button>
+                    }
                   }
                   <button class="btn-ghost" (click)="c.fetchPersonCards()" [disabled]="c.personLoading()" id="btn-person-gen">✨ Fresh AI Cards</button>
                 </div>
