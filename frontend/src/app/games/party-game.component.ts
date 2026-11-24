@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TeamPickerComponent } from '../components/team-picker.component';
 import { TimerComponent } from '../components/timer.component';
@@ -30,24 +30,46 @@ const PANIC_PTS = 10;
 
         <div class="row g-4 align-items-stretch">
           <div class="col-12 col-lg-8">
-            <div class="stage glass" [class.live]="phase() === 'live'" [class.boom]="phase() === 'boom'" [class.defused]="phase() === 'defused'">
+            <div class="stage glass" [class.ready]="phase() === 'ready'" [class.live]="phase() === 'live'" [class.boom]="phase() === 'boom'" [class.defused]="phase() === 'defused'">
               @if (phase() === 'idle') {
                 <div class="text-center py-4">
                   <div class="ic">👅</div>
                   <h2 class="display">Say it 3 Times Fast!</h2>
                   <p class="muted max-w mt-2">
                     Player from <b class="text-white">{{ teams.activeTeam()?.name ?? 'active team' }}</b> takes the mic.
-                    Read the tongue twister <b>3 times clearly in 20 seconds</b> to earn <b>+{{ pts }} pts</b>!
+                    First, reveal the tongue twister so they can read the words. When they say <b>START</b>, launch the 20-second countdown!
                   </p>
-                  <button class="btn-neon btn-lg-x pulse mt-3" (click)="panicStart()" [disabled]="loading()" id="btn-panic-start">
-                    {{ loading() ? '🤖 Loading twisters…' : '💣 START 20-SECOND TIMER' }}
+                  <button class="btn-neon btn-lg-x pulse mt-3" (click)="revealTwister()" [disabled]="loading()" id="btn-panic-reveal">
+                    {{ loading() ? '🤖 Loading twisters…' : '👀 REVEAL TONGUE TWISTER' }}
                   </button>
                 </div>
-              } @else if (phase() === 'live' && panicCur()) {
+              } @else if (phase() === 'ready' && panicCur()) {
                 @let t = panicCur()!;
                 <div class="live-stage text-center w-100">
                   <div class="lbl">{{ t.emoji }} {{ t.type.toUpperCase() }}</div>
                   <div class="twister-box">
+                    <div class="q display grad-text">{{ t.task }}</div>
+                  </div>
+
+                  <div class="ready-banner mt-3">
+                    <span class="badge-ready">👀 PREVIEW READY — Take 5 seconds to read the words!</span>
+                    <p class="muted mt-2 mb-0">Player on mic: Take a breath and say <b>"START"</b> when ready!</p>
+                  </div>
+
+                  <div class="actions mt-4">
+                    <button class="btn-neon btn-green btn-lg-x pulse" (click)="startCountdown()" id="btn-start-countdown">
+                      ⏱️ START 20-SECOND TIMER (Player Ready!) [Space]
+                    </button>
+                    <button class="btn-ghost" (click)="revealTwister()" [disabled]="loading()" id="btn-swap-twister">
+                      🔄 Swap Twister
+                    </button>
+                  </div>
+                </div>
+              } @else if (phase() === 'live' && panicCur()) {
+                @let t = panicCur()!;
+                <div class="live-stage text-center w-100">
+                  <div class="lbl">{{ t.emoji }} {{ t.type.toUpperCase() }} · 🔴 TIMER RUNNING</div>
+                  <div class="twister-box twister-box-live">
                     <div class="q display grad-text">{{ t.task }}</div>
                   </div>
 
@@ -81,14 +103,14 @@ const PANIC_PTS = 10;
                   <div class="ic">😎</div>
                   <h2 class="display grad-text">BOOM PREVENTED! +{{ pts }} pts</h2>
                   <p class="text-white mt-1">Flawless diction! {{ teams.activeTeam()?.name ?? 'The team' }} scores +{{ pts }} points.</p>
-                  <button class="btn-neon btn-lg-x mt-3" (click)="panicStart()" id="btn-panic-next">➡ Next Twister</button>
+                  <button class="btn-neon btn-lg-x mt-3" (click)="revealTwister()" id="btn-panic-next">➡ Next Twister</button>
                 </div>
               } @else {
                 <div class="text-center py-4">
                   <div class="ic">💥</div>
                   <h2 class="display text-danger">BOOM! Tongue Got Twisted!</h2>
                   <p class="muted mt-1">Time ran out or words tripped up! Better luck on the next round.</p>
-                  <button class="btn-neon mt-3" (click)="panicStart()" id="btn-panic-retry">➡ Next Twister</button>
+                  <button class="btn-neon mt-3" (click)="revealTwister()" id="btn-panic-retry">➡ Next Twister</button>
                 </div>
               }
             </div>
@@ -110,6 +132,7 @@ const PANIC_PTS = 10;
     .back:hover { color: #fff; }
     .sub-info { font-size: 1.05rem; margin-top: .3rem; }
     .stage { min-height: 440px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2.2rem; transition: .4s; border-radius: 24px; }
+    .stage.ready { box-shadow: 0 0 50px rgba(59,130,246,.35); border-color: #3b82f6; }
     .stage.live { box-shadow: 0 0 60px rgba(168,85,247,.45); border-color: var(--purple); }
     .stage.defused { box-shadow: 0 0 70px rgba(34,197,94,.5); border-color: #22c55e; }
     .stage.boom { box-shadow: 0 0 70px rgba(239,68,68,.7); border-color: #ef4444; }
@@ -117,7 +140,10 @@ const PANIC_PTS = 10;
     @keyframes float { 50% { transform: translateY(-10px); } }
     .lbl { letter-spacing: .25em; font-size: .85rem; color: #facc15; font-weight: 800; margin-bottom: .6rem; }
     .twister-box { background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12); border-radius: 18px; padding: 1.6rem 2rem; margin: .5rem 0; width: 100%; }
+    .twister-box-live { box-shadow: 0 0 35px rgba(239,68,68,.3); border-color: rgba(239,68,68,.4); }
     .q { font-size: clamp(1.4rem, 3.2vw, 2.2rem); font-weight: 900; line-height: 1.35; margin: 0; color: #fff; }
+    .ready-banner { background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.3); border-radius: 14px; padding: 1rem 1.4rem; max-width: 640px; margin: 0 auto; }
+    .badge-ready { display: inline-block; background: rgba(59,130,246,.25); border: 1px solid #3b82f6; color: #93c5fd; font-weight: 800; font-size: .82rem; letter-spacing: .08em; padding: .25rem .75rem; border-radius: 999px; }
     .rep-tracker { display: flex; align-items: center; justify-content: center; gap: .8rem; flex-wrap: wrap; }
     .rep-lbl { font-size: .88rem; font-weight: 800; color: var(--muted); letter-spacing: .06em; }
     .rep-pills { display: flex; gap: .6rem; flex-wrap: wrap; }
@@ -140,7 +166,7 @@ export class PartyGameComponent implements OnInit {
   readonly pts = PANIC_PTS;
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-  readonly phase = signal<'idle' | 'live' | 'defused' | 'boom'>('idle');
+  readonly phase = signal<'idle' | 'ready' | 'live' | 'defused' | 'boom'>('idle');
   readonly panicCur = signal<PanicTask | null>(null);
   readonly repsDone = signal<number>(0);
   readonly timer;
@@ -165,6 +191,15 @@ export class PartyGameComponent implements OnInit {
     }
   }
 
+  @HostListener('window:keydown', ['$event'])
+  handleKey(e: KeyboardEvent) {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+    if (this.phase() === 'ready' && (e.code === 'Space' || e.code === 'Enter')) {
+      e.preventDefault();
+      this.startCountdown();
+    }
+  }
+
   private async refill<T>(q: T[], fetch: () => Promise<T[]>): Promise<T[]> {
     if (q.length > 0) return q;
     this.loading.set(true);
@@ -185,16 +220,16 @@ export class PartyGameComponent implements OnInit {
     this.repsDone.update(cur => (cur === num ? num - 1 : num));
   }
 
-  async panicStart() {
+  async revealTwister() {
     this.repsDone.set(0);
+    this.timer.reset(PANIC_SECONDS);
     this.panicQ = await this.refill(this.panicQ, async () => (await this.api.panicTasks(this.usedPanic)).tasks);
     const t = this.panicQ.shift();
     if (!t) return;
     this.usedPanic = [...this.usedPanic, t.task].slice(-30);
     this.panicCur.set(t);
-    this.phase.set('live');
+    this.phase.set('ready');
     this.sound.whoosh();
-    this.timer.start(PANIC_SECONDS);
 
     // Pre-fetch in background so next twister is instant
     if (this.panicQ.length <= 2) {
@@ -202,6 +237,14 @@ export class PartyGameComponent implements OnInit {
         this.panicQ = [...this.panicQ, ...res.tasks];
       }).catch(() => {});
     }
+  }
+
+  startCountdown() {
+    if (this.phase() !== 'ready' || !this.panicCur()) return;
+    this.repsDone.set(0);
+    this.phase.set('live');
+    this.sound.click();
+    this.timer.start(PANIC_SECONDS);
   }
 
   panicDefused() {
