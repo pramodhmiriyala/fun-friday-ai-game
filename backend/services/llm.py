@@ -38,7 +38,7 @@ def chat_json(system: str, user: str, max_tokens: int = 700, temperature: float 
     m = model or MODEL
     kwargs = {"max_completion_tokens": max_tokens}
     if not m.startswith(("gpt-3", "gpt-4")):
-        # Newer models (gpt-5/6/o-series): reasoning uses part of the budget and only default temperature is allowed.
+        # Reasoning models (o1, o3-mini): reasoning tokens use budget and only default temperature is allowed.
         kwargs["max_completion_tokens"] = max_tokens * 4 + 500
         kwargs["reasoning_effort"] = "low"  # keep it fast for a live game
     else:
