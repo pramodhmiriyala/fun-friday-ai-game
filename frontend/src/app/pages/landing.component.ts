@@ -279,15 +279,14 @@ import { SoundService } from '../services/sound.service';
 
     /* Hero */
     .hero { position: relative; min-height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 5rem 1.5rem 2rem; z-index: 2; }
-    .spots { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-    .spots i { position: absolute; top: -10%; width: 220px; height: 130%; background: linear-gradient(180deg, rgba(168,85,247,.45), transparent 70%); transform-origin: top center; filter: blur(22px); animation: sweep 7s ease-in-out infinite alternate; }
+    .spots { position: absolute; inset: 0; overflow: hidden; pointer-events: none; contain: strict; }
+    .spots i { position: absolute; top: -10%; width: 260px; height: 130%; background: radial-gradient(ellipse at 50% 0%, rgba(168,85,247,.32) 0%, rgba(168,85,247,.08) 45%, transparent 70%); transform-origin: top center; will-change: transform; animation: sweep 7s ease-in-out infinite alternate; }
     .spots i:nth-child(1) { left: 18%; }
-    .spots i:nth-child(2) { left: 48%; background: linear-gradient(180deg, rgba(59,130,246,.45), transparent 70%); animation-delay: -2s; }
-    .spots i:nth-child(3) { right: 15%; background: linear-gradient(180deg, rgba(236,72,153,.45), transparent 70%); animation-delay: -4s; }
+    .spots i:nth-child(2) { left: 48%; background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,.32) 0%, rgba(59,130,246,.08) 45%, transparent 70%); animation-delay: -2s; }
+    .spots i:nth-child(3) { right: 15%; background: radial-gradient(ellipse at 50% 0%, rgba(236,72,153,.32) 0%, rgba(236,72,153,.08) 45%, transparent 70%); animation-delay: -4s; }
     @keyframes sweep { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
     .title { position: relative; font-weight: 900; margin: 1rem 0; line-height: 1.1; }
-    .glitch { display: block; font-size: clamp(3rem, 9vw, 7.5rem); filter: drop-shadow(0 0 30px rgba(168,85,247,.7)); animation: gradMove 6s linear infinite, titleGlow 3s ease-in-out infinite alternate; }
-    @keyframes titleGlow { to { filter: drop-shadow(0 0 60px rgba(236,72,153,.9)); } }
+    .glitch { display: block; font-size: clamp(3rem, 9vw, 7.5rem); text-shadow: 0 0 35px rgba(168,85,247,.7); animation: gradMove 6s linear infinite; }
     .sub { display: block; font-size: clamp(1rem, 2.5vw, 2rem); color: #fff; font-weight: 700; margin-top: .5rem; text-shadow: 0 0 24px rgba(59,130,246,.9); }
     .lead { font-size: clamp(1rem, 1.4vw, 1.35rem); max-width: 760px; }
     .cta { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1.8rem; }

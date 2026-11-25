@@ -11,8 +11,8 @@
   --gold: #facc15;
   --text: #f8fafc;
   --muted: #94a3b8;
-  --glass: rgba(18, 12, 46, 0.65);
-  --glass-card: rgba(22, 14, 56, 0.72);
+  --glass: rgba(18, 12, 46, 0.75);
+  --glass-card: rgba(18, 12, 46, 0.85);
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-highlight: rgba(255, 255, 255, 0.22);
   --grad: linear-gradient(135deg, #a855f7 0%, #3b82f6 50%, #ec4899 100%);
@@ -25,7 +25,11 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 body {
   margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font);
   overflow-x: hidden;
@@ -45,19 +49,18 @@ h1, h2, h3, .display { font-family: var(--font-display); letter-spacing: 0.02em;
 .grad-text {
   background: var(--grad-text); background-size: 300% 100%; -webkit-background-clip: text;
   background-clip: text; color: transparent; animation: gradMove 6s linear infinite;
-  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.35));
+  text-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
 }
 @keyframes gradMove { to { background-position: 300% 0; } }
 
-/* ----- Premium Glassmorphism Cards (Optimized Performance) ----- */
+/* ----- Premium Glassmorphism Cards (Hardware-Accelerated 120fps Smooth) ----- */
 .glass {
   background: var(--glass-card);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-  transform: translateZ(0);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .glass-pad { padding: 1.6rem; }
