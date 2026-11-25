@@ -5,6 +5,7 @@ import { ConfettiService } from './confetti.service';
 import { ScoringService } from './scoring.service';
 import { SoundService } from './sound.service';
 import { TeamService } from './team.service';
+import { HostAuthService } from './host-auth.service';
 
 export type MovieCategory =
   | 'Telugu'
@@ -87,6 +88,7 @@ export class GuessMovieService {
     private team: TeamService,
     private scoring: ScoringService,
     private confetti: ConfettiService,
+    private auth: HostAuthService,
   ) {}
 
   setCategory(cat: MovieCategory) {
@@ -202,13 +204,18 @@ export class GuessMovieService {
     }
   }
 
-  async reveal() {
+  /** Only the logged-in host can reveal the answer (asks for the host password otherwise). */
+  reveal() {
+    this.auth.gate(() => this.doReveal());
+  }
+
+  private async doReveal() {
     const s = this.state();
     if (s.phase !== 'live' || !s.sessionId || this.thinking()) return;
     this.thinking.set(true);
     this.error.set(null);
     try {
-      const res = await this.api.guessMovieReveal(s.sessionId);
+      const res = await this.api.guessMovieReveal(s.sessionId, this.auth.token());
       this.sound.reveal();
       this.state.update(st => ({
         ...st,

@@ -36,4 +36,4 @@ COPY --from=frontend-builder /app/frontend/dist/frontend/browser /app/static
 EXPOSE 5000
 
 # Run with production Gunicorn server
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--timeout", "60", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "8", "--timeout", "60", "app:app"]

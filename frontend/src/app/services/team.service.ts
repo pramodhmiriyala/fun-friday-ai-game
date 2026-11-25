@@ -11,7 +11,7 @@ export interface Team {
 
 const PALETTE = ['#a855f7', '#3b82f6', '#ec4899', '#22d3ee', '#f59e0b', '#10b981', '#f43f5e', '#8b5cf6'];
 const EMOJIS = ['🦄', '🚀', '🔥', '⚡', '🐉', '🎯', '👾', '🦊'];
-const DEFAULT_NAMES = ['Byte Me', 'Ctrl+Alt+Win', 'Null Pointers', 'Git Happens'];
+const DEFAULT_NAMES = ['Team Alpha', 'Team Beta', 'Team Gamma', 'Team Delta'];
 
 @Injectable({ providedIn: 'root' })
 export class TeamService {
@@ -61,6 +61,16 @@ export class TeamService {
 
   removeMember(id: string, name: string) {
     this.teams.update((l) => l.map((t) => (t.id === id ? { ...t, members: t.members.filter((m) => m !== name) } : t)));
+  }
+
+  renameMember(id: string, oldName: string, newName: string): string | null {
+    const n = newName.trim().slice(0, 30);
+    if (!n) return 'Member name is required';
+    const team = this.get(id);
+    if (!team) return 'Team not found';
+    if (team.members.some((m) => m !== oldName && m.toLowerCase() === n.toLowerCase())) return 'Member already in the team';
+    this.teams.update((l) => l.map((t) => (t.id === id ? { ...t, members: t.members.map((m) => (m === oldName ? n : m)) } : t)));
+    return null;
   }
 
   setActive(id: string | null) { this.activeTeamId.set(id); }

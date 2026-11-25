@@ -5,6 +5,7 @@ import { TeamPickerComponent } from '../components/team-picker.component';
 import { TimerComponent } from '../components/timer.component';
 import { ClassicGamesService } from '../services/classic-games.service';
 import { TeamService } from '../services/team.service';
+import { HostAuthService } from '../services/host-auth.service';
 
 /** Reusable AI-powered component for Rapid Fire MCQs, Who Am I?, Team Voting, and Picture Puzzle. */
 @Component({
@@ -118,7 +119,7 @@ import { TeamService } from '../services/team.service';
                   <button class="btn-neon btn-green" (click)="c.puzzleSolve()" id="btn-puzzle-solve">✅ Team solved it</button>
                   <button class="btn-neon btn-gold" (click)="c.puzzleHint()" [disabled]="p.showHint" id="btn-puzzle-hint">💡 Hint (−2)</button>
                   <button class="btn-neon btn-cyan" (click)="c.puzzleOpenTile()" id="btn-puzzle-tile">🔓 Open tile</button>
-                  <button class="btn-neon btn-pink" (click)="c.puzzleReveal()" id="btn-puzzle-reveal">👁 Reveal</button>
+                  <button class="btn-neon btn-pink" (click)="c.puzzleReveal()" id="btn-puzzle-reveal">{{ auth.isHost() ? '👁 Reveal' : '🔒 Reveal (host)' }}</button>
                 }
                 @if (p.phase === 'revealed') { <button class="btn-neon btn-lg-x" (click)="c.puzzleNext()" id="btn-puzzle-next">➡ Next puzzle</button> }
               </div>
@@ -148,7 +149,7 @@ import { TeamService } from '../services/team.service';
                   @if (!pr.revealed) {
                     <button class="btn-neon btn-cyan" (click)="c.personClue()" [disabled]="pr.clues >= person.clues.length" id="btn-person-clue">➕ Next clue</button>
                     <button class="btn-neon btn-green" (click)="c.personSolve()" id="btn-person-solve">✅ Team guessed it</button>
-                    <button class="btn-neon btn-pink" (click)="c.personReveal()" id="btn-person-reveal">👁 Reveal</button>
+                    <button class="btn-neon btn-pink" (click)="c.personReveal()" id="btn-person-reveal">{{ auth.isHost() ? '👁 Reveal' : '🔒 Reveal (host)' }}</button>
                   } @else {
                     @if (pr.pos + 1 >= (c.state().person.people.length || 5)) {
                       <div class="badge-pill my-3">🎉 5 Riddles completed for {{ teams.activeTeam()?.name ?? 'this team' }}! Select the next team above, then start:</div>
@@ -211,6 +212,7 @@ import { TeamService } from '../services/team.service';
 export class ClassicGameComponent implements OnInit {
   readonly c = inject(ClassicGamesService);
   readonly teams = inject(TeamService);
+  readonly auth = inject(HostAuthService);
   private route = inject(ActivatedRoute);
   readonly id = signal('rapid');
   readonly nine = [0, 1, 2, 3, 4, 5, 6, 7, 8];

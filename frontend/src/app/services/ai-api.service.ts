@@ -95,8 +95,11 @@ export class AiApiService {
   guessMovieInteract(sessionId: string, message: string, mode: 'chat' | 'clue' = 'chat') {
     return this.post<GuessInteractResponse>('/guess-movie/interact', { session_id: sessionId, message, mode });
   }
-  guessMovieReveal(sessionId: string) {
-    return this.post<GuessRevealResponse>('/guess-movie/reveal', { session_id: sessionId });
+  guessMovieReveal(sessionId: string, hostToken: string) {
+    return this.post<GuessRevealResponse>('/guess-movie/reveal', { session_id: sessionId }, { 'X-Host-Token': hostToken });
+  }
+  hostLogin(password: string) {
+    return this.post<{ token: string }>('/host/login', { password }, undefined, false);
   }
   rapidQuestions(count: number, exclude: string[]) {
     return this.post<{ questions: RapidQuestion[]; source: AiSource }>('/rapid-fire/generate', { count, exclude });
@@ -114,15 +117,25 @@ export class AiApiService {
     return this.post<{ people: PersonCard[]; source: AiSource }>('/person/generate', { exclude });
   }
 
-  private async post<T>(path: string, body: unknown): Promise<T> {
-    try {
-      return await firstValueFrom(this.http.post<T>(this.base + path, body));
-    } catch (e) {
-      const err = e as HttpErrorResponse;
-      if (err.status === 0) throw new Error('Cannot reach the game server. Is the Flask backend running on port 5000?');
-      if (err.status === 429) throw new Error('Slow down! Too many AI requests. Try again in a minute.');
-      if (err.status === 503) throw new Error(err.error?.error ?? 'AI service unavailable. Check your OpenAI API key.');
-      throw new Error(err.error?.error ?? 'The AI hiccuped. Please try again.');
+  private async post<T>(path: string, body: unknown, headers?: Record<string, string>, retry = true): Promise<T> {
+    let lastErr: HttpErrorResponse | undefined;
+    // one automatic retry on network blips / server hiccups so the host never sees a dead first click
+    for (let attempt = 0; attempt < (retry ? 2 : 1); attempt++) {
+      try {
+        return await firstValueFrom(this.http.post<T>(this.base + path, body, headers ? { headers } : {}));
+      } catch (e) {
+        lastErr = e as HttpErrorResponse;
+        const s = lastErr.status;
+        const transient = s === 0 || s === 500 || s === 502 || s === 503 || s === 504;
+        if (!transient) break;
+        await new Promise((r) => setTimeout(r, 500));
+      }
     }
+    const err = lastErr!;
+    if (err.status === 0) throw new Error('Cannot reach the game server. Is the Flask backend running on port 5000?');
+    if (err.status === 401) throw new Error(err.error?.error ?? 'Host login required.');
+    if (err.status === 429) throw new Error('Slow down! Too many AI requests. Try again in a minute.');
+    if (err.status === 503) throw new Error(err.error?.error ?? 'AI service unavailable. Check your OpenAI API key.');
+    throw new Error(err.error?.error ?? 'The AI hiccuped. Please try again.');
   }
 }

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SoundService } from '../services/sound.service';
 import { TeamService } from '../services/team.service';
+import { ConfirmService } from '../services/confirm.service';
 
 @Component({
   selector: 'app-team-manager',
@@ -19,7 +20,7 @@ import { TeamService } from '../services/team.service';
 
         <!-- Create Team Card -->
         <div class="glass glass-pad add fade-in mt-3">
-          <input class="form-control" id="input-team-name" placeholder="Team name (e.g. Byte Me, Code Ninjas)" maxlength="30" [(ngModel)]="newName" (keyup.enter)="addTeam()">
+          <input class="form-control" id="input-team-name" placeholder="Team name (e.g. Code Ninjas)" maxlength="30" [(ngModel)]="newName" (keyup.enter)="addTeam()">
           <button class="btn-neon" id="btn-add-team" (click)="addTeam()">＋ Create Team</button>
           @if (teams.teams().length === 0) {
             <button class="btn-neon btn-cyan" id="btn-quick-teams" (click)="teams.quickStart(); sound.correct()">⚡ Quick start with 4 teams</button>
@@ -63,7 +64,18 @@ import { TeamService } from '../services/team.service';
                 <!-- Member list -->
                 <ul class="members">
                   @for (m of t.members; track m) {
-                    <li>{{ m }}<button (click)="teams.removeMember(t.id, m)" aria-label="Remove member">×</button></li>
+                    @if (editingMember() === t.id + '|' + m) {
+                      <li class="editing">
+                        <input class="form-control form-control-sm" [(ngModel)]="editMemberName" maxlength="30" autofocus
+                               (keyup.enter)="saveMember(t.id, m)" (keyup.escape)="cancelMember()">
+                        <button (click)="saveMember(t.id, m)" aria-label="Save member name" title="Save">✓</button>
+                        <button (click)="cancelMember()" aria-label="Cancel" title="Cancel">✕</button>
+                      </li>
+                    } @else {
+                      <li><span (dblclick)="startMember(t.id, m)" title="Double click to edit">{{ m }}</span>
+                        <button (click)="startMember(t.id, m)" aria-label="Edit member name" title="Edit name">✏️</button>
+                        <button (click)="teams.removeMember(t.id, m)" aria-label="Remove member" title="Remove">×</button></li>
+                    }
                   } @empty {
                     <li class="muted none">No members yet</li>
                   }
@@ -122,17 +134,38 @@ import { TeamService } from '../services/team.service';
     .members li button { background: none; border: 0; color: #fff; cursor: pointer; opacity: .6; font-size: 1rem; }
     .members li button:hover { opacity: 1; color: #f87171; }
     .members li.none { border: 0; background: none; padding: 0; font-style: italic; opacity: .7; }
+    .members li.editing { padding: .1rem .3rem; } .members li.editing input { width: 130px; }
+    .members li button { font-size: .8rem; }
     .addm { display: flex; gap: .5rem; }
   `,
 })
 export class TeamManagerComponent {
   readonly teams = inject(TeamService);
   readonly sound = inject(SoundService);
+  readonly confirm = inject(ConfirmService);
   newName = '';
   editing = signal<string | null>(null);
   editName = '';
   error = signal<string | null>(null);
   memberInputs = signal<Record<string, string>>({});
+  editingMember = signal<string | null>(null);
+  editMemberName = '';
+
+  startMember(id: string, name: string) {
+    this.sound.click();
+    this.error.set(null);
+    this.editingMember.set(id + '|' + name);
+    this.editMemberName = name;
+  }
+
+  cancelMember() { this.editingMember.set(null); this.editMemberName = ''; this.error.set(null); }
+
+  saveMember(id: string, oldName: string) {
+    const err = this.teams.renameMember(id, oldName, this.editMemberName);
+    if (err) { this.error.set(err); this.sound.wrong(); return; }
+    this.cancelMember();
+    this.sound.correct();
+  }
 
   addTeam() {
     this.error.set(null);
@@ -172,8 +205,11 @@ export class TeamManagerComponent {
     }
   }
 
-  deleteTeam(id: string, name: string) {
-    if (confirm(`Are you sure you want to delete team "${name}"?`)) {
+  async deleteTeam(id: string, name: string) {
+    const ok = await this.confirm.ask(`"${name}" and its members will be removed.`, {
+      title: 'Delete this team?', confirmLabel: '🗑️ Delete', icon: '🗑️',
+    });
+    if (ok) {
       this.teams.remove(id);
       this.sound.click();
       if (this.editing() === id) {

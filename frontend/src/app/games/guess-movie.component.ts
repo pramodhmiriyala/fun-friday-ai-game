@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TeamPickerComponent } from '../components/team-picker.component';
 import { GuessMovieService, MOVIE_CATEGORIES } from '../services/guess-movie.service';
 import { TeamService } from '../services/team.service';
+import { HostAuthService } from '../services/host-auth.service';
 
 @Component({
   selector: 'app-guess-movie',
@@ -152,7 +153,7 @@ import { TeamService } from '../services/team.service';
                       (click)="g.reveal()"
                       [disabled]="g.thinking()"
                       id="btn-guess-reveal">
-                👁 Reveal Movie
+                {{ auth.isHost() ? '👁 Reveal Movie' : '🔒 Reveal Movie (host)' }}
               </button>
             }
             @if (s().phase === 'solved' || s().phase === 'revealed') {
@@ -269,6 +270,7 @@ import { TeamService } from '../services/team.service';
 export class GuessMovieComponent {
   readonly g = inject(GuessMovieService);
   readonly teams = inject(TeamService);
+  readonly auth = inject(HostAuthService);
   readonly s = this.g.state;
   readonly categories = MOVIE_CATEGORIES;
   readonly slots = [0, 1, 2, 3, 4];

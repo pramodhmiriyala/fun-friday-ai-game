@@ -19,8 +19,17 @@ def _get_client():
     if not key:
         raise AIUnavailable("OPENAI_API_KEY is not configured")
     from openai import OpenAI
-    _client = OpenAI(api_key=key, timeout=60.0, max_retries=0)
+    _client = OpenAI(api_key=key, timeout=float(os.getenv("OPENAI_TIMEOUT", "40")), max_retries=0)
     return _client
+
+
+def warmup() -> None:
+    """Pre-import the SDK and open the TLS connection so the FIRST game request isn't slow/failing."""
+    try:
+        client = _get_client()
+        client.models.list()
+    except Exception:
+        pass
 
 
 def ai_configured() -> bool:
@@ -43,14 +52,15 @@ def chat_json(system: str, user: str, max_tokens: int = 700, temperature: float 
         kwargs["reasoning_effort"] = "low"  # keep it fast for a live game
     else:
         kwargs["temperature"] = temperature
-    try:
-        def _call(kw):
-            return client.chat.completions.create(
-                model=m,
-                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-                response_format={"type": "json_object"},
-                **kw,
-            )
+    def _call(kw):
+        return client.chat.completions.create(
+            model=m,
+            messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+            response_format={"type": "json_object"},
+            **kw,
+        )
+
+    def _attempt():
         try:
             resp = _call(kwargs)
         except Exception as e1:
@@ -59,11 +69,24 @@ def chat_json(system: str, user: str, max_tokens: int = 700, temperature: float 
                 resp = _call(kwargs)
             else:
                 raise
-        return json.loads(resp.choices[0].message.content)
-    except AIUnavailable:
-        raise
-    except Exception as exc:  # network, auth, rate limit, bad JSON
-        raise AIUnavailable(str(exc)) from exc
+        data = json.loads(resp.choices[0].message.content)
+        if not isinstance(data, dict) or not data:
+            raise ValueError("empty AI response")
+        return data
+
+    last: Exception | None = None
+    for i in range(2):  # one automatic retry for timeouts / blips / empty JSON
+        try:
+            return _attempt()
+        except AIUnavailable:
+            raise
+        except Exception as exc:  # network, auth, rate limit, bad JSON
+            last = exc
+            msg = str(exc).lower()
+            if "api key" in msg or "incorrect api" in msg or "401" in msg:
+                break  # retrying won't help
+            time.sleep(0.4)
+    raise AIUnavailable(str(last)) from last
 
 
 class TTLCache:

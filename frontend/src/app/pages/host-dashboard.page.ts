@@ -1,135 +1,104 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { LeaderboardComponent } from '../components/leaderboard.component';
 import { ScorePanelComponent } from '../components/score-panel.component';
-import { SpinWheelComponent } from '../components/spin-wheel.component';
-import { ClassicGameComponent } from '../games/classic-game.component';
-import { TruthOrDareComponent } from '../games/truth-or-dare.component';
-import { GuessMovieComponent } from '../games/guess-movie.component';
 import { AiApiService } from '../services/ai-api.service';
-import { ClassicGamesService } from '../services/classic-games.service';
-import { TruthOrDareService } from '../services/truth-or-dare.service';
-import { GuessMovieService } from '../services/guess-movie.service';
+import { HostAuthService } from '../services/host-auth.service';
 import { ScoringService } from '../services/scoring.service';
 import { TeamService } from '../services/team.service';
-import { TeamPickerComponent } from '../components/team-picker.component';
-
-type Tab = 'truth-dare' | 'guess' | 'rapid' | 'puzzle' | 'person' | 'wheel';
+import { ConfirmService } from '../services/confirm.service';
 
 @Component({
   selector: 'app-host-dashboard',
-  imports: [RouterLink, LeaderboardComponent, ScorePanelComponent, SpinWheelComponent, ClassicGameComponent,
-    TruthOrDareComponent, GuessMovieComponent, TeamPickerComponent],
+  imports: [FormsModule, RouterLink, ScorePanelComponent],
   template: `
-    <section class="page host">
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-        <div>
-          <span class="badge-pill">🎛 Host only</span>
-          <h1 class="page-title grad-text mb-0">Host Dashboard</h1>
-          <div class="muted small">Tip: open the <b>Projector view</b> in a second window and drag it to the projector. Both stay in sync.</div>
+    @if (!auth.isHost()) {
+      <!-- ───────── Host login ───────── -->
+      <section class="page host">
+        <div class="glass glass-pad login-card pop-in">
+          <div class="lock">🔐</div>
+          <h1 class="h3 grad-text mt-2">Host Dashboard</h1>
+          <p class="muted">Sign in with the host password to manage scores and tournament controls.</p>
+          <input class="form-control" type="password" placeholder="Host password" [(ngModel)]="pw"
+                 (keyup.enter)="login()" id="dash-host-password" autofocus>
+          @if (auth.error()) { <div class="alert-neon mt-2 py-1 small">{{ auth.error() }}</div> }
+          <button class="btn-neon mt-3 w-100" (click)="login()" [disabled]="auth.busy() || !pw.trim()" id="dash-host-login">
+            {{ auth.busy() ? 'Checking…' : '🔓 Sign in' }}
+          </button>
         </div>
-        <div class="d-flex gap-2 flex-wrap">
-          <button class="btn-neon btn-cyan" (click)="openProjector()" id="btn-projector">📽 Open Projector View</button>
-          <a routerLink="/leaderboard" class="btn-neon btn-gold text-decoration-none" id="btn-host-board">📊 Show Leaderboard</a>
-          <a routerLink="/winner" class="btn-neon btn-pink text-decoration-none" id="btn-host-winner">🏆 Final Winner</a>
-        </div>
-      </div>
+      </section>
+    } @else {
+      <section class="page host">
+        <div class="host-container">
+          <a routerLink="/" class="back mb-3 d-inline-block">← Back to Arena</a>
 
-      <div class="row g-4">
-        <div class="col-12 col-xl-8">
-          <div class="tabs glass glass-pad mb-3">
-            @for (t of tabs; track t.id) {
-              <button class="btn-ghost" [class.active]="tab() === t.id" (click)="tab.set(t.id)" [id]="'host-tab-' + t.id">{{ t.icon }} {{ t.label }}</button>
-            }
-          </div>
-          <div class="glass glass-pad panel">
-            <!-- Per-game tip banner -->
-            @switch (tab()) {
-              @case ('guess') {
-                <div class="tip-bar tip-ai">🎬 <b>AI Guess the Movie.</b> Pick Telugu, Tamil, Hindi, Kannada, Marathi, Bengali, Odia, English, etc. AI secretly chooses a movie, reveals the plot as Clue #1, and answers team questions live!</div>
-              }
-              @case ('rapid') {
-                <div class="tip-bar tip-timer">⚡ <b>AI Rapid Fire MCQs.</b> Select the active team and press START. AI generates 4-option MCQs — click A/B/C/D for instant scoring (+5 pts each) in 60 seconds!</div>
-              }
-              @case ('person') {
-                <div class="tip-bar tip-ai">🕵️ <b>AI Who Am I?</b> AI generates 5 progressive clues about a famous person or object. Reveal one by one — fewer clues = more points!</div>
-              }
-              @case ('truth-dare') {
-                <div class="tip-bar tip-ai">🎭 <b>AI Truth or Dare.</b> Select player on stage → Spin Wheel. Hilarious office questions & 20s team challenges. Pure fun, no points!</div>
-              }
-              @case ('puzzle') {
-                <div class="tip-bar tip-vote">🧩 <b>Bonus Round — Picture Puzzle.</b> Tiles peel away every few seconds. First team to shout the answer wins!</div>
-              }
-              @case ('wheel') {
-                <div class="tip-bar tip-wheel">🎡 <b>Spinner.</b> Use <b>Pick a Team</b> between games, <b>Pick a Game</b> to randomly choose next activity, or <b>Bonus Challenge</b> anytime for extra fun!</div>
-              }
-            }
-            @switch (tab()) {
-              @case ('truth-dare') { <app-truth-or-dare [embedded]="true" /> }
-              @case ('guess') { <app-guess-movie [embedded]="true" /> }
-              @case ('rapid') { <app-classic-game [embedded]="true" gameId="rapid" /> }
-              @case ('puzzle') { <app-classic-game [embedded]="true" gameId="puzzle" /> }
-              @case ('person') { <app-classic-game [embedded]="true" gameId="person" /> }
-              @case ('wheel') { <app-spin-wheel [size]="460" /> }
-            }
-          </div>
-        </div>
-        <div class="col-12 col-xl-4">
-          <div class="glass glass-pad mb-3">
-            <h3 class="h5">📡 Status</h3>
-            <div>Backend: <b [class.ok]="api.online()" [class.bad]="!api.online()">{{ api.online() ? 'online' : 'offline' }}</b></div>
-            <div>AI: <b [class.ok]="api.aiEnabled()">{{ api.aiEnabled() ? 'AI Active' : 'built-in content (no API key)' }}</b></div>
-            <button class="btn-ghost btn-sm-x mt-2" (click)="api.health()" id="btn-health">↻ Re-check</button>
-          </div>
-          <div class="glass glass-pad mb-3"><h3 class="h5">🎤 Team on stage</h3><app-team-picker /></div>
-          <app-score-panel />
-          <div class="glass glass-pad mt-3"><h3 class="h5">🏆 Standings</h3><app-leaderboard [compact]="true" /></div>
-          <div class="glass glass-pad mt-3">
-            <h3 class="h5">⚠ Danger zone</h3>
-            <div class="d-flex flex-wrap gap-2">
-              <button class="btn-ghost btn-sm-x" (click)="confirmThen('Reset all scores?', resetScores)" id="btn-reset-scores">Reset scores</button>
-              <button class="btn-ghost btn-sm-x" (click)="confirmThen('Reset all game progress (scores kept)?', resetGames)" id="btn-reset-games">Reset games</button>
-              <button class="btn-ghost btn-sm-x" (click)="confirmThen('Delete EVERYTHING (teams + scores)?', resetAll)" id="btn-reset-all">New tournament</button>
+          <!-- ───────── Header ───────── -->
+          <div class="glass glass-pad mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div>
+                <span class="badge-pill mb-1">Host Controls</span>
+                <h1 class="page-title grad-text mb-1">Host Dashboard</h1>
+                <div class="muted small d-flex align-items-center gap-2">
+                  <span class="dot" [class.ok]="api.online()" [class.bad]="!api.online()"></span>
+                  <span>{{ api.online() ? 'Server online' : 'Server offline' }} · {{ api.aiEnabled() ? 'AI active' : 'built-in content' }}</span>
+                  <button class="link-btn" (click)="api.health()" id="btn-health" title="Refresh server status">↻</button>
+                </div>
+              </div>
+              <div class="d-flex gap-2 flex-wrap align-items-center">
+                <a routerLink="/leaderboard" class="btn-neon btn-gold text-decoration-none" id="btn-host-board">📊 Leaderboard</a>
+                <a routerLink="/winner" class="btn-neon btn-pink text-decoration-none" id="btn-host-winner">🏆 Crown Winner</a>
+                <button class="btn-ghost" (click)="auth.logout()" id="btn-dash-logout">Log out</button>
+              </div>
             </div>
           </div>
+
+          <!-- ───────── Team Scores (Simple & Short) ───────── -->
+          <div class="mb-4">
+            <app-score-panel />
+          </div>
+
+          <!-- ───────── Danger Zone / Reset options ───────── -->
+          <details class="glass glass-pad danger">
+            <summary class="muted">⚠ Tournament Reset Options</summary>
+            <div class="d-flex flex-wrap gap-2 mt-3 pt-2 border-top border-secondary border-opacity-25">
+              <button class="btn-ghost btn-sm-x" (click)="confirmThen('Reset all team scores to zero?', resetScores)" id="btn-reset-scores">Reset scores</button>
+              <button class="btn-ghost btn-sm-x text-danger" (click)="confirmThen('Delete EVERYTHING (teams + scores)?', resetAll)" id="btn-reset-all">New tournament</button>
+            </div>
+          </details>
         </div>
-      </div>
-    </section>
+      </section>
+    }
   `,
   styles: `
-    .tabs { display: flex; gap: .5rem; flex-wrap: wrap; padding: .9rem; } .panel { min-height: 600px; }
-    .ok { color: #4ade80; } .bad { color: #f87171; }
-    .tip-bar { font-size: .9rem; padding: .7rem 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid; }
-    .tip-buzzer { background: rgba(236,72,153,.1); border-color: #ec4899; color: #f9a8d4; }
-    .tip-timer  { background: rgba(250,204,21,.08); border-color: #facc15; color: #fde68a; }
-    .tip-ai     { background: rgba(168,85,247,.1); border-color: #a855f7; color: #d8b4fe; }
-    .tip-vote   { background: rgba(59,130,246,.1); border-color: #3b82f6; color: #93c5fd; }
-    .tip-wheel  { background: rgba(34,211,238,.08); border-color: #22d3ee; color: #67e8f9; }
+    .host-container { max-width: 900px; margin: 0 auto; }
+    .back { font-size: .88rem; color: var(--muted); text-decoration: none; }
+    .back:hover { color: var(--text); }
+    .badge-pill { display: inline-block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; padding: .15rem .6rem; border-radius: 99px; background: rgba(168,85,247,.2); color: #d8b4fe; border: 1px solid rgba(168,85,247,.4); }
+    .login-card { max-width: 420px; margin: 12vh auto 0; text-align: center; }
+    .lock { font-size: 3rem; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f87171; }
+    .dot.ok { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+    .link-btn { background: none; border: 0; color: var(--cyan); cursor: pointer; font-size: .85rem; padding: 0 4px; }
+    details.danger summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
   `,
 })
 export class HostDashboardComponent {
   readonly api = inject(AiApiService);
+  readonly auth = inject(HostAuthService);
+  private confirm = inject(ConfirmService);
   private teams = inject(TeamService);
   private scoring = inject(ScoringService);
-  private truthDare = inject(TruthOrDareService);
-  private guess = inject(GuessMovieService);
-  private classic = inject(ClassicGamesService);
-  readonly tab = signal<Tab>('truth-dare');
-  readonly tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'truth-dare', label: 'Truth or Dare', icon: '🎭' },
-    { id: 'guess', label: 'Guess Movie', icon: '🎞️' },
-    { id: 'rapid', label: 'Rapid Fire', icon: '⚡' },
-    { id: 'puzzle', label: 'Puzzle', icon: '🧩' },
-    { id: 'person', label: 'Person', icon: '🕵️' },
-    { id: 'wheel', label: 'Wheel', icon: '🎡' },
-  ];
+  pw = '';
 
-  openProjector() { window.open('/', 'funconnect-projector', 'popup=no'); }
-  confirmThen(msg: string, fn: () => void) { if (confirm(msg)) fn.call(this); }
-  resetScores() { this.scoring.resetScores(); }
-  resetGames() {
-    this.truthDare.reset(); this.guess.resetGame();
-    this.classic.rapidStop();
+  async login() {
+    if (await this.auth.login(this.pw)) this.pw = '';
   }
-  resetAll() { this.resetScores(); this.resetGames(); this.teams.clear(); }
+
+  async confirmThen(msg: string, fn: () => void) {
+    const ok = await this.confirm.ask(msg, { title: 'Tournament Reset', confirmLabel: 'Proceed', icon: '⚠' });
+    if (ok) fn.call(this);
+  }
+
+  resetScores() { this.scoring.resetScores(); }
+  resetAll() { this.resetScores(); this.teams.clear(); }
 }

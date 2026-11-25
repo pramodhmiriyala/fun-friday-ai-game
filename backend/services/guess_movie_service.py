@@ -325,7 +325,7 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
         session["solved"] = True
         return {
             "is_correct": True,
-            "is_guess": true,
+            "is_guess": True,
             "kind": "win",
             "reply": reply,
             "questions_left": session["questions_left"],

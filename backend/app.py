@@ -13,7 +13,28 @@ from flask_cors import CORS
 load_dotenv()
 
 from services import describe_service, guess_movie_service, movie_director_service, rapid_fire_service, guess_person_service, truth_or_dare_service, panic_service, nolaugh_service  # noqa: E402
-from services.llm import ai_configured, AIUnavailable, chat_json, model_for  # noqa: E402
+from services import host_auth  # noqa: E402
+from services.llm import ai_configured, AIUnavailable, chat_json, model_for, warmup  # noqa: E402
+from services.prefetch import BatchPool  # noqa: E402
+
+# Pre-generated batches so "next questions" load instantly (see services/prefetch.py)
+rapid_pool = BatchPool("rapid", rapid_fire_service.generate_questions, 10, lambda q: q["q"])
+person_pool = BatchPool("person", guess_person_service.generate_people, 5, lambda p: p["name"])
+
+
+def _startup_warm():
+    import threading
+
+    def go():
+        warmup()
+        rapid_pool.refill()
+        person_pool.refill()
+
+    if ai_configured():
+        threading.Thread(target=go, daemon=True).start()
+
+
+_startup_warm()
 
 STATIC_DIR = os.getenv(
     "STATIC_DIR",
@@ -155,11 +176,12 @@ def truth_or_dare_generate():
 def rapid_fire_generate():
     """AI-generated MCQ trivia questions for Rapid Fire."""
     d = body()
+    count, exclude = clamp_count(d.get("count"), default=5, hi=10), clean_list(d.get("exclude"))
+    ready = rapid_pool.take(count, exclude)
+    if ready:
+        return jsonify(questions=ready, source="ai")
     try:
-        questions, src = rapid_fire_service.generate_questions(
-            clamp_count(d.get("count"), default=5, hi=10),
-            clean_list(d.get("exclude")),
-        )
+        questions, src = rapid_fire_service.generate_questions(count, exclude)
     except AIUnavailable as e:
         return jsonify(error=f"AI unavailable: {e}. Please check your OpenAI API key and try again."), 503
     return jsonify(questions=questions, source=src)
@@ -231,6 +253,9 @@ def guess_interact():
 
 @app.post("/api/guess-movie/reveal")
 def guess_reveal():
+    # Only the logged-in host may reveal the answer
+    if not host_auth.verify_token(request.headers.get("X-Host-Token", "")):
+        return jsonify(error="Host login required to reveal the answer."), 401
     d = body()
     session_id = str(d.get("session_id", "")).strip()
     if not session_id:
@@ -240,6 +265,20 @@ def guess_reveal():
     except ValueError as e:
         raise BadRequest(str(e))
     return jsonify(result)
+
+
+@app.post("/api/host/login")
+def host_login():
+    d = body()
+    if not host_auth.check_password(str(d.get("password", ""))[:100]):
+        time.sleep(0.8)  # slow down guessing
+        return jsonify(error="Wrong host password"), 401
+    return jsonify(token=host_auth.issue_token())
+
+
+@app.get("/api/host/verify")
+def host_verify():
+    return jsonify(valid=host_auth.verify_token(request.headers.get("X-Host-Token", "")))
 
 
 @app.post("/api/rapid/generate")
@@ -285,11 +324,12 @@ def voting_generate():
 def person_generate():
     """'Who Am I?' (Crazy GK & Tech Clues) - AI Podupu Kathalu (Riddles) progressive clues."""
     d = body()
+    count, exclude = clamp_count(d.get("count"), default=5, hi=8), clean_list(d.get("exclude"))
+    ready = person_pool.take(count, exclude)
+    if ready:
+        return jsonify(people=ready, source="ai")
     try:
-        people, src = guess_person_service.generate_people(
-            clamp_count(d.get("count"), default=5, hi=8),
-            clean_list(d.get("exclude")),
-        )
+        people, src = guess_person_service.generate_people(count, exclude)
         return jsonify(people=people, source=src)
     except AIUnavailable as e:
         return jsonify(error=f"AI unavailable: {e}"), 503

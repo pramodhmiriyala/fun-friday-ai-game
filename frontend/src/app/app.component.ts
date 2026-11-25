@@ -4,10 +4,13 @@ import { AnimatedBgComponent } from './components/animated-bg.component';
 import { AiApiService } from './services/ai-api.service';
 import { SoundService } from './services/sound.service';
 import { TeamService } from './services/team.service';
+import { HostAuthService } from './services/host-auth.service';
+import { HostLoginModalComponent } from './components/host-login-modal.component';
+import { ConfirmDialogComponent } from './components/confirm-dialog.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, AnimatedBgComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, AnimatedBgComponent, HostLoginModalComponent, ConfirmDialogComponent],
   template: `
     <app-animated-bg />
     <nav class="nav glass" aria-label="Main">
@@ -26,9 +29,14 @@ import { TeamService } from './services/team.service';
         <button class="btn-ghost sound-btn"
                 [class.active]="sound.bgmPlaying()"
                 (click)="sound.toggleBgm()"
-                [title]="sound.bgmPlaying() ? 'Mute Background Music' : 'Play Ambient Music'">
+                [title]="sound.bgmPlaying() ? 'Mute Background Music' : 'Play Background Music'">
           {{ sound.bgmPlaying() ? '🎵 Music On' : '🔇 Music Off' }}
         </button>
+        <button class="btn-ghost sound-btn" id="btn-music-style" (click)="sound.cycleBgmStyle()"
+                title="Change music style">{{ sound.styleInfo().icon }} {{ sound.styleInfo().label }}</button>
+        @if (auth.isHost()) {
+          <button class="btn-ghost sound-btn" id="btn-host-logout" (click)="auth.logout()" title="Host logged in – click to log out">🔓 Host</button>
+        }
         <button class="btn-ghost sound-btn" id="btn-sound" (click)="sound.toggle(); sound.click()" [attr.aria-label]="sound.muted() ? 'Unmute' : 'Mute'" title="Sound Effects">
           {{ sound.muted() ? '🔇 SFX Off' : '🔊 SFX' }}
         </button>
@@ -37,6 +45,8 @@ import { TeamService } from './services/team.service';
       </div>
     </nav>
     <main><router-outlet /></main>
+    <app-host-login-modal />
+    <app-confirm-dialog />
   `,
   styles: `
     .nav { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); width: min(1500px, calc(100% - 28px));
@@ -61,6 +71,7 @@ export class AppComponent implements OnInit {
   readonly api = inject(AiApiService);
   readonly sound = inject(SoundService);
   readonly team = inject(TeamService);
+  readonly auth = inject(HostAuthService);
 
   ngOnInit() {
     this.api.health();

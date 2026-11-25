@@ -7,6 +7,7 @@ import { ScoringService } from './scoring.service';
 import { SoundService } from './sound.service';
 import { TeamService } from './team.service';
 import { TimerService } from './timer.service';
+import { HostAuthService } from './host-auth.service';
 
 function shuffled(n: number): number[] {
   const a = Array.from({ length: n }, (_, i) => i);
@@ -66,6 +67,7 @@ export class ClassicGamesService {
     private scoring: ScoringService,
     private confetti: ConfettiService,
     private api: AiApiService,
+    private auth: HostAuthService,
   ) {
     this.rapidTimer  = timers.create('rapid', RAPID_SECONDS);
     this.puzzleTimer = timers.create('puzzle', 0);
@@ -205,7 +207,10 @@ export class ClassicGamesService {
     this.confetti.burst(0.5, 0.5, 120);
     this.patch('puzzle', { phase: 'revealed' });
   }
-  puzzleReveal() { clearInterval(this.puzzleLoop); this.sound.reveal(); this.patch('puzzle', { phase: 'revealed' }); }
+  /** Only the logged-in host can reveal the answer. */
+  puzzleReveal() {
+    this.auth.gate(() => { clearInterval(this.puzzleLoop); this.sound.reveal(); this.patch('puzzle', { phase: 'revealed' }); });
+  }
   puzzleNext() { clearInterval(this.puzzleLoop); this.patch('puzzle', { pos: this.state().puzzle.pos + 1, phase: 'idle', open: [], showHint: false }); }
 
   private nextTeamCards: PersonCard[] = [];
@@ -226,12 +231,15 @@ export class ClassicGamesService {
       usedNames: name ? [...this.state().person.usedNames, name].slice(-30) : this.state().person.usedNames,
     });
   }
+  /** Only the logged-in host can reveal the answer. */
   personReveal() {
-    this.sound.reveal();
-    const name = this.person()?.name ?? '';
-    this.patch('person', {
-      revealed: true,
-      usedNames: name ? [...this.state().person.usedNames, name].slice(-40) : this.state().person.usedNames,
+    this.auth.gate(() => {
+      this.sound.reveal();
+      const name = this.person()?.name ?? '';
+      this.patch('person', {
+        revealed: true,
+        usedNames: name ? [...this.state().person.usedNames, name].slice(-40) : this.state().person.usedNames,
+      });
     });
   }
   personNext() {

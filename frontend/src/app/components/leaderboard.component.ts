@@ -10,7 +10,7 @@ import { CountUpComponent } from './count-up.component';
   template: `
     <div class="board" [style.height.px]="rows().length * pitch() || 120">
       @for (r of rows(); track r.team.id) {
-        <div class="row glass" [style.transform]="'translateY(' + $index * pitch() + 'px)'" [style.--tc]="r.team.color"
+        <div class="lb-row glass" [style.transform]="'translateY(' + $index * pitch() + 'px)'" [style.--tc]="r.team.color"
              [class.top]="r.rank === 1 && r.total > 0" [class.flash]="flashId() === r.team.id" [class.compact]="compact()">
           <div class="rank display">{{ r.rank === 1 && r.total > 0 ? '👑' : r.rank }}</div>
           <div class="emoji">{{ r.team.emoji }}</div>
@@ -32,11 +32,14 @@ import { CountUpComponent } from './count-up.component';
   `,
   styles: `
     .board { position: relative; transition: height .4s; }
-    .row { position: absolute; left: 0; right: 0; height: 76px; display: flex; align-items: center; gap: 1rem; padding: 0 1.3rem;
+    .lb-row { position: absolute; left: 0; right: 0; height: 76px; display: flex; flex-wrap: nowrap; align-items: center; gap: 1rem; padding: 0 1.3rem; margin: 0;
       transition: transform .9s cubic-bezier(.3,1.2,.4,1), box-shadow .4s; overflow: hidden; border-left: 5px solid var(--tc); }
-    .row.compact { height: 58px; gap: .7rem; padding: 0 1rem; }
-    .row.top { box-shadow: 0 0 36px rgba(250,204,21,.45); border-color: rgba(250,204,21,.6); }
-    .row.flash { animation: flash 1.2s; }
+    .lb-row > * { width: auto; max-width: none; flex-shrink: 0; padding: 0; }
+    .lb-row > .info { flex: 1 1 0; min-width: 0; flex-shrink: 1; }
+    .lb-row > .bar { position: absolute; }
+    .lb-row.compact { height: 58px; gap: .7rem; padding: 0 1rem; }
+    .lb-row.top { box-shadow: 0 0 36px rgba(250,204,21,.45); border-color: rgba(250,204,21,.6); }
+    .lb-row.flash { animation: flash 1.2s; }
     @keyframes flash { 30% { box-shadow: 0 0 50px var(--tc); background: color-mix(in srgb, var(--tc) 35%, transparent); } }
     .rank { font-size: 1.5rem; font-weight: 900; width: 44px; text-align: center; }
     .emoji { font-size: 1.9rem; }
