@@ -20,9 +20,9 @@ _refilling_truth = False
 _refilling_dare = False
 
 
-def chat_json_fast(system: str, user: str, model_name: str, timeout_sec: float = 3.5) -> dict:
-    """Fast call with strict 3.5s timeout so live games never lag or freeze."""
-    return chat_json(system, user, max_tokens=80, model=model_name, timeout=timeout_sec)
+def chat_json_fast(system: str, user: str, model_name: str, timeout_sec: float = 3.0, max_tokens: int = 80) -> dict:
+    """Fast call with strict timeout so live games never lag or freeze."""
+    return chat_json(system, user, max_tokens=max_tokens, model=model_name, timeout=timeout_sec)
 
 
 def _refill_truth():
@@ -125,46 +125,48 @@ Return JSON only:
 }
 """
 
-DARE_SYSTEM = """You generate hilarious, high-energy, 1-SENTENCE 'DARE' challenges for an Indian IT corporate virtual meeting (Teams/Zoom).
-Audience: Tech professionals sitting at their desks in front of a laptop webcam and mic.
+DARE_SYSTEM = """You generate classic, hilarious, and playful 1-SENTENCE 'DARE' challenges for a corporate virtual meeting (Teams/Zoom).
+Audience: Professionals sitting at their desks on webcam and mic.
+Zero overlap with teleshopping pitches or commentary. These are classic party game dares!
 
 CRITICAL VIRTUAL MEETING RULES:
-- 100% DESK & WEBCAM ONLY: Strictly sitting in chair!
-- STRICT PROHIBITION: NEVER ask anyone to dance, walk across a room, or leave their desk!
+- 100% DESK & WEBCAM/MIC ONLY: Sitting in chair.
+- STRICT PROHIBITION: NEVER ask anyone to leave their desk, dance, or run.
 - EXACTLY ONE SHORT SENTENCE: Under 12 to 14 words!
-- Focus on hilarious teleshopping sales pitches (Naaptol style), IPL commentary, dramatic Bollywood gasps, cartoon voices, or funny facial freezes.
+- Focus on: funny accents, typing with elbows/noses, upside-down glasses, dramatic Oscar speeches, funny sound effects, rhyming speech, or poker faces.
 
 POPULAR EXAMPLES:
-1. Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!
-2. Give high-energy Hindi IPL commentary on someone in this call sipping tea or water!
-3. Sing "Twinkle Twinkle Little Star" like an intense dramatic opera singer for 10 seconds!
-4. Apologize emotionally to your laptop charger for 100% battery overworking in 15 seconds!
-5. Take a sip of water in extreme slow motion on webcam like a luxury TV commercial!
-6. Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!
-7. Give a high-energy 15-second live weather report of your room like a TV news anchor!
-8. Imitate the Google Maps GPS voice saying "In 100 meters, take a sharp left" on mic!
-9. Deliver a 15-second breaking news bulletin: "Local developer survives Monday morning standup!"
-10. Recreate your funniest reaction emoji on webcam and freeze completely for 10 seconds!
-11. Give an emotional award acceptance speech thanking Ctrl+Z and StackOverflow for your career!
-12. Speak for the next 15 seconds in an enthusiastic cartoon character voice!
-13. Count backwards from 20 to 1 as fast as you can without fumbling on mic!
-14. Act like your video is completely buffering with your mouth wide open for 10 seconds!
+1. Send the funniest animal GIF you can find in the team chat right now!
+2. Talk in a posh British accent for the next 20 seconds on mic!
+3. Wear your glasses or sunglasses upside down on webcam with a serious face for 1 round!
+4. Say the entire English alphabet backwards from Z to P as fast as possible!
+5. Type a 4-word greeting in the team chat using only your elbow or nose!
+6. Give an emotional 15-second Oscar speech thanking Google, StackOverflow, and Ctrl+Z!
+7. Tell the team one ridiculous made-up fact and try to convince everyone it's 100% real!
+8. Imitate the default ringtone of an iPhone or Nokia loudly on mic for 10 seconds!
+9. Do your best high-energy radio DJ station intro for our team call on mic!
+10. Mime drinking a cup of burning hot tea using only silent facial expressions on webcam!
+11. Speak in rhymes for the next 20 seconds whenever you talk on mic!
+12. Describe your job title in 10 seconds without using any tech or corporate words!
+13. Hold a totally emotionless poker face while the rest of the team tries to make you laugh for 10s!
+14. Make up a funny 2-line rap about working from home on mic in 10 seconds!
 
 Return JSON only:
 {
   "category": "Dare",
-  "prompt": "Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!"
+  "prompt": "Talk in a posh British accent for the next 20 seconds on mic!"
 }
 """
 
 POPULAR_BUILTIN_TRUTHS = [
-    "Have you ever claimed your mic is broken just to dodge giving an update?",
-    "What's the funniest lie you gave when you overslept a morning standup?",
+    "What's the funniest blunder you made at work and silently resolved before anyone noticed?",
+    "Have you ever claimed your mic is broken just to dodge giving a sudden update?",
+    "What is the funniest excuse you gave when you overslept a morning standup?",
     "Have you ever attended a virtual call from bed while pretending you're at your desk?",
     "Have you ever said 'Can you hear me?' solely to buy 15 seconds to think?",
     "What is one buzzword you constantly use without knowing what it actually means?",
     "Have you ever nodded intensely on camera while having zero clue what was discussed?",
-    "Have you ever browsed Swiggy or Zomato during a serious project retrospective?",
+    "Have you ever browsed food delivery apps during a serious project retrospective?",
     "What is the longest you've stared at a bug before realizing you didn't save the file?",
     "Have you ever said 'Let's take this offline' just because you had no answer?",
     "Who in this meeting has the most believable fake smile during stressful calls?",
@@ -179,22 +181,22 @@ POPULAR_BUILTIN_TRUTHS = [
 ]
 
 POPULAR_BUILTIN_DARES = [
-    "Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!",
-    "Give high-energy Hindi IPL commentary on someone in this call sipping tea or water!",
-    "Sing 'Twinkle Twinkle Little Star' like an intense dramatic opera singer for 10 seconds!",
-    "Apologize emotionally to your laptop charger for 100% battery overworking in 15 seconds!",
-    "Take a sip of water in extreme slow motion on webcam like a luxury TV commercial!",
-    "Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!",
-    "Give a high-energy 15-second live weather report of your room like a TV news anchor!",
-    "Imitate the Google Maps GPS voice saying 'In 100 meters, take a sharp left' on mic!",
-    "Deliver a 15-second breaking news bulletin: 'Local developer survives Monday morning standup!'",
-    "Recreate your funniest reaction emoji on webcam and freeze completely for 10 seconds!",
-    "Give an emotional award acceptance speech thanking Ctrl+Z and StackOverflow for your career!",
-    "Speak for the next 15 seconds in an enthusiastic cartoon character voice!",
-    "Count backwards from 20 to 1 as fast as you can without fumbling on mic!",
-    "Act like your video is completely buffering with your mouth wide open for 10 seconds!",
-    "Imitate an automated customer care IVR robot voice glitching out on mic!",
-    "Explain your job in 15 seconds as if you are explaining to a 5-year-old child!",
+    "Send the funniest animal GIF you can find in the team chat right now!",
+    "Talk in a posh British accent for the next 20 seconds on mic!",
+    "Wear your glasses or sunglasses upside down on webcam with a serious face for 1 round!",
+    "Say the entire English alphabet backwards from Z to P as fast as possible!",
+    "Type a 4-word greeting in the team chat using only your elbow or nose!",
+    "Give an emotional 15-second Oscar speech thanking Google, StackOverflow, and Ctrl+Z!",
+    "Tell the team one ridiculous made-up fact and try to convince everyone it's 100% real!",
+    "Imitate the default ringtone of an iPhone or Nokia loudly on mic for 10 seconds!",
+    "Do your best high-energy radio DJ station intro for our team call on mic!",
+    "Mime drinking a cup of burning hot tea using only silent facial expressions on webcam!",
+    "Speak in rhymes for the next 20 seconds whenever you talk on mic!",
+    "Describe your job title in 10 seconds without using any tech or corporate words!",
+    "Hold a totally emotionless poker face while the rest of the team tries to make you laugh for 10s!",
+    "Make up a funny 2-line rap about working from home on mic in 10 seconds!",
+    "Sing your favorite nursery rhyme in an intense rockstar voice for 10 seconds!",
+    "Say your first and last name backwards 3 times quickly without fumbling on mic!",
 ]
 
 

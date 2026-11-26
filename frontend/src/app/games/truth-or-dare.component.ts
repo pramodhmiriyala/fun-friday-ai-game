@@ -50,7 +50,7 @@ interface WheelSlice {
               <div class="pointer">▼</div>
               <div class="wheel-disc"
                    [style.transform]="'rotate(' + rotation() + 'deg)'"
-                   [style.transition]="spinning() ? 'transform 3.5s cubic-bezier(0.12, 0.8, 0.2, 1)' : 'none'">
+                   [style.transition]="spinning() ? 'transform 2.8s cubic-bezier(0.12, 0.8, 0.2, 1)' : 'none'">
                 <svg viewBox="0 0 320 320" class="wheel-svg">
                   <defs>
                     <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -257,7 +257,7 @@ export class TruthOrDareComponent {
       this.t.preload(chosen.type);
     }
 
-    // After 3.5s spin finishes, trigger outcome instantly
+    // After 2.8s spin finishes, trigger outcome instantly
     setTimeout(() => {
       this.spinning.set(false);
       this.pointsAwarded.set(false);
@@ -269,7 +269,7 @@ export class TruthOrDareComponent {
       } else {
         this.t.play(chosen.type);
       }
-    }, 3500);
+    }, 2800);
   }
 
   awardPoints(pts = 10) {

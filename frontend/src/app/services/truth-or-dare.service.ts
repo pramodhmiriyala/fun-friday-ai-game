@@ -72,12 +72,14 @@ export class TruthOrDareService {
         "Have you ever nodded intensely on camera while having zero clue what was discussed?",
       ];
       const defaultDares = [
-        "Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!",
-        "Give high-energy Hindi IPL commentary on someone in this call sipping tea or water!",
-        "Sing 'Twinkle Twinkle Little Star' like an intense dramatic opera singer for 10 seconds!",
-        "Apologize emotionally to your laptop charger for 100% battery overworking in 15 seconds!",
-        "Take a sip of water in extreme slow motion on webcam like a luxury TV commercial!",
-        "Imitate the Google Maps GPS voice saying 'In 100 meters, take a sharp left' on mic!",
+        "Send the funniest animal GIF you can find in the team chat right now!",
+        "Talk in a posh British accent for the next 20 seconds on mic!",
+        "Wear your glasses or sunglasses upside down on webcam with a serious face for 1 round!",
+        "Say the entire English alphabet backwards from Z to P as fast as possible!",
+        "Type a 4-word greeting in the team chat using only your elbow or nose!",
+        "Give an emotional 15-second Oscar speech thanking Google, StackOverflow, and Ctrl+Z!",
+        "Tell the team one ridiculous made-up fact and try to convince everyone it's 100% real!",
+        "Mime drinking a cup of burning hot tea using only silent facial expressions on webcam!",
       ];
       const pool = type === 'truth' ? defaultTruths : defaultDares;
       const history = this.state().history;
