@@ -4,7 +4,7 @@ import os
 import time
 
 _client = None
-MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
 
 
 class AIUnavailable(Exception):
@@ -37,8 +37,17 @@ def ai_configured() -> bool:
 
 
 def model_for(game: str) -> str:
-    """Per-game model override: MODEL_<GAME> env var (e.g. MODEL_PERSON), else defaults."""
-    return os.getenv("MODEL_" + game.upper(), "").strip() or MODEL
+    """Per-game model override: MODEL_<GAME> env var (e.g. MODEL_RAPID), else smart defaults.
+    On Render or any cloud deployment, you only need ONE variable: OPENAI_MODEL=gpt-4o.
+    - Creative games (Truth, Dare, Movie, Person) automatically use OPENAI_MODEL (gpt-4o).
+    - Rapid Fire automatically uses gpt-4o-mini for sub-second speed (unless overridden).
+    """
+    override = os.getenv("MODEL_" + game.upper(), "").strip()
+    if override:
+        return override
+    if game.lower() == "rapid":
+        return "gpt-4o-mini"
+    return os.getenv("OPENAI_MODEL", "").strip() or "gpt-4o"
 
 
 def chat_json(system: str, user: str, max_tokens: int = 700, temperature: float = 1.0, model: str | None = None) -> dict:
