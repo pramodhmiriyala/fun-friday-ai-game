@@ -22,12 +22,18 @@ export class TruthOrDareService {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
+  private preloadedPromise: Promise<any> | null = null;
+
   constructor(
     private api: AiApiService,
     private sound: SoundService,
     private team: TeamService,
     private confetti: ConfettiService,
   ) {}
+
+  preload(type: 'truth' | 'dare') {
+    this.preloadedPromise = this.api.truthOrDare(type, this.state().history);
+  }
 
   async play(type: 'truth' | 'dare') {
     if (this.loading()) return;
@@ -36,7 +42,10 @@ export class TruthOrDareService {
     this.sound.drumroll();
 
     try {
-      const res = await this.api.truthOrDare(type, this.state().history);
+      const res = this.preloadedPromise
+        ? await this.preloadedPromise
+        : await this.api.truthOrDare(type, this.state().history);
+      this.preloadedPromise = null;
       this.sound.reveal();
       this.state.update((s) => ({
         ...s,
@@ -48,6 +57,7 @@ export class TruthOrDareService {
       this.error.set((e as Error).message);
     } finally {
       this.loading.set(false);
+      this.preloadedPromise = null;
     }
   }
 

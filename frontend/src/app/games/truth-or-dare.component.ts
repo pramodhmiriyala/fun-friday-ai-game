@@ -251,7 +251,13 @@ export class TruthOrDareComponent {
 
     this.rotation.set(finalAngle);
 
-    // After 3.5s spin finishes, trigger outcome
+    // Fetch in parallel immediately while the wheel is spinning!
+    const chosen = this.slices[targetSlice];
+    if (chosen.type !== 'pass') {
+      this.t.preload(chosen.type);
+    }
+
+    // After 3.5s spin finishes, trigger outcome instantly
     setTimeout(() => {
       this.spinning.set(false);
       this.pointsAwarded.set(false);

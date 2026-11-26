@@ -3,6 +3,7 @@ Simple, punchy, 1-SENTENCE questions & challenges for online video calls (Teams/
 100% sitting-at-desk/webcam/mic friendly. Zero dancing, zero walking across a room.
 """
 import random
+import threading
 import time
 from .llm import chat_json, model_for, AIUnavailable
 
@@ -10,6 +11,80 @@ from .llm import chat_json, model_for, AIUnavailable
 _recent_truths: list[str] = []
 _recent_dares: list[str] = []
 MAX_HISTORY = 80
+
+# Background prefetch buffers for instantaneous (<10ms) zero-latency responses
+_truth_pool: list[str] = []
+_dare_pool: list[str] = []
+_pool_lock = threading.Lock()
+_refilling_truth = False
+_refilling_dare = False
+
+
+def refill_pools():
+    _refill_truth()
+    _refill_dare()
+
+
+def _refill_truth():
+    global _refilling_truth
+    with _pool_lock:
+        if len(_truth_pool) >= 3 or _refilling_truth:
+            return
+        _refilling_truth = True
+
+    def _worker():
+        global _refilling_truth
+        try:
+            ex_str = " | ".join(_recent_truths[-25:]) if _recent_truths else "none"
+            data = chat_json(
+                TRUTH_SYSTEM,
+                f"Generate 1 unique, super short (under 12 words) virtual meeting truth question. STRICTLY AVOID: {ex_str}. Randomness seed: {time.time()}.",
+                max_tokens=80,
+                model=model_for("truth"),
+            )
+            prompt = str(data.get("question") or data.get("prompt", "")).strip()[:140]
+            if prompt:
+                with _pool_lock:
+                    if prompt not in _truth_pool and prompt not in _recent_truths:
+                        _truth_pool.append(prompt)
+        except Exception:
+            pass
+        finally:
+            with _pool_lock:
+                _refilling_truth = False
+
+    threading.Thread(target=_worker, daemon=True).start()
+
+
+def _refill_dare():
+    global _refilling_dare
+    with _pool_lock:
+        if len(_dare_pool) >= 3 or _refilling_dare:
+            return
+        _refilling_dare = True
+
+    def _worker():
+        global _refilling_dare
+        try:
+            ex_str = " | ".join(_recent_dares[-25:]) if _recent_dares else "none"
+            data = chat_json(
+                DARE_SYSTEM,
+                f"Generate 1 unique, super short (under 12 words) webcam/mic virtual meeting dare. NO dancing! Desk only. STRICTLY AVOID: {ex_str}. Randomness seed: {time.time()}.",
+                max_tokens=80,
+                model=model_for("dare"),
+            )
+            prompt = str(data.get("prompt") or data.get("question", "")).strip()[:140]
+            if prompt:
+                with _pool_lock:
+                    if prompt not in _dare_pool and prompt not in _recent_dares:
+                        _dare_pool.append(prompt)
+        except Exception:
+            pass
+        finally:
+            with _pool_lock:
+                _refilling_dare = False
+
+    threading.Thread(target=_worker, daemon=True).start()
 
 TRUTH_SYSTEM = """You generate genuinely hilarious, relatable, and super witty 1-SENTENCE 'TRUTH' questions for an Indian IT corporate virtual meeting (Teams/Zoom).
 Audience: Indian software engineers, QA, leads, and tech managers on webcam.
@@ -125,6 +200,16 @@ POPULAR_BUILTIN_DARES = [
 def get_truth(exclude: list[str]) -> tuple[dict, str]:
     global _recent_truths
     combined_exclude = list(dict.fromkeys(exclude + _recent_truths))[-50:]
+
+    # 1. Check background prefetch pool for instant (<1ms) response
+    with _pool_lock:
+        for idx, item in enumerate(_truth_pool):
+            if item not in combined_exclude:
+                prompt = _truth_pool.pop(idx)
+                _recent_truths.append(prompt)
+                _refill_truth()
+                return {"prompt": prompt, "category": "Truth", "type": "truth"}, "ai"
+
     ex_str = " | ".join(combined_exclude[:25]) if combined_exclude else "none"
 
     try:
@@ -158,6 +243,16 @@ def get_truth(exclude: list[str]) -> tuple[dict, str]:
 def get_dare(exclude: list[str]) -> tuple[dict, str]:
     global _recent_dares
     combined_exclude = list(dict.fromkeys(exclude + _recent_dares))[-50:]
+
+    # 1. Check background prefetch pool for instant (<1ms) response
+    with _pool_lock:
+        for idx, item in enumerate(_dare_pool):
+            if item not in combined_exclude:
+                prompt = _dare_pool.pop(idx)
+                _recent_dares.append(prompt)
+                _refill_dare()
+                return {"prompt": prompt, "category": "Dare", "type": "dare"}, "ai"
+
     ex_str = " | ".join(combined_exclude[:25]) if combined_exclude else "none"
 
     try:

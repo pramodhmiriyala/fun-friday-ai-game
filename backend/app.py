@@ -26,9 +26,16 @@ def _startup_warm():
     import threading
 
     def go():
+        time.sleep(0.5)
         warmup()
-        rapid_pool.refill()
-        person_pool.refill()
+        try:
+            truth_or_dare_service.refill_pools()
+            time.sleep(1.0)
+            rapid_pool.refill()
+            time.sleep(1.0)
+            person_pool.refill()
+        except Exception:
+            pass
 
     if ai_configured():
         threading.Thread(target=go, daemon=True).start()
@@ -369,4 +376,4 @@ def serve_spa(path):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=os.getenv("FLASK_DEBUG") == "1")
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=os.getenv("FLASK_DEBUG") == "1", threaded=True)
