@@ -171,7 +171,7 @@ interface GameRule {
                       <div class="bonus-chip">☕ <b>Slow-Mo Sip:</b> Take a sip of water/tea in extreme slow motion (+10 pts)</div>
                       <div class="bonus-chip">🔌 <b>Charger Apology:</b> Emotionally apologize to your 100% charger (+10 pts)</div>
                       <div class="bonus-chip">☀️ <b>Weather Anchor:</b> High-energy 15s weather report of room (+15 pts)</div>
-                      <div class="bonus-chip">👅 <b>Nose Touch:</b> Try to touch nose with tongue for 6 seconds (+10 pts)</div>
+                      <div class="bonus-chip">🗺️ <b>GPS Voice:</b> Imitate Google Maps navigation voice on mic (+10 pts)</div>
                       <div class="bonus-chip">🗿 <b>Webcam Freeze:</b> Buffering video call expression for 15s (+10 pts)</div>
                       <div class="bonus-chip">🎁 <b>Lucky Jackpot:</b> Free instant team bonus (+20 pts)</div>
                     </div>

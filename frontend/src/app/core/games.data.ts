@@ -88,7 +88,7 @@ export const BONUS_CHALLENGES = [
   { text: 'WEATHER ANCHOR: Give a high-energy live weather report of your room in 15 seconds like a TV news anchor!', pts: 15, icon: '☀️' },
   { text: 'IPL COMMENTARY: Give high-speed Hindi or English IPL commentary on someone in the call sipping tea or water!', pts: 15, icon: '🏏' },
   { text: 'CHARGER APOLOGY: Emotionally apologize to your laptop charger for 100% battery overworking in 15 seconds!', pts: 10, icon: '🔌' },
-  { text: 'NOSE TOUCH: Try to touch your nose with your tongue on webcam for 6 seconds without laughing!', pts: 10, icon: '👅' },
+  { text: 'GPS VOICE: Imitate the Google Maps voice saying "In 100 meters, take a sharp left" on mic!', pts: 10, icon: '🗺️' },
   { text: 'BREAKING NEWS: Deliver a 15-second breaking news bulletin: "Local developer survives Monday morning standup!"', pts: 15, icon: '📰' },
   { text: 'STARING CONTEST: Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!', pts: 10, icon: '👀' },
   { text: 'WEBCAM FREEZE: Freeze completely like a buffering video call with a funny expression for 15 seconds!', pts: 10, icon: '🗿' },

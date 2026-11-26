@@ -94,7 +94,7 @@ interface WheelSlice {
               <h2 class="display grad-text">LUCKY PASS!</h2>
               <div class="pass-bonus-badge my-3">⭐ FREE +5 BONUS POINTS ⭐</div>
               <p class="fs-5 text-white mb-4">
-                Lady luck smiled on <b class="text-white">{{ teams.activeTeam()?.name ?? 'your team' }}</b>!
+                Bonus awarded to <b class="text-white">{{ teams.activeTeam()?.name ?? 'your team' }}</b>!
                 <br><span class="muted fs-6">Turn safely skipped + <b>5 free points</b> automatically added to your score!</span>
               </p>
               <div class="actions">

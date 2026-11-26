@@ -66,7 +66,7 @@ POPULAR EXAMPLES:
 5. Take a sip of water in extreme slow motion on webcam like a luxury TV commercial!
 6. Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!
 7. Give a high-energy 15-second live weather report of your room like a TV news anchor!
-8. Try to touch your nose with your tongue on webcam for 6 seconds without laughing!
+8. Imitate the Google Maps GPS voice saying "In 100 meters, take a sharp left" on mic!
 9. Deliver a 15-second breaking news bulletin: "Local developer survives Monday morning standup!"
 10. Recreate your funniest reaction emoji on webcam and freeze completely for 10 seconds!
 11. Give an emotional award acceptance speech thanking Ctrl+Z and StackOverflow for your career!
@@ -110,7 +110,7 @@ POPULAR_BUILTIN_DARES = [
     "Take a sip of water in extreme slow motion on webcam like a luxury TV commercial!",
     "Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!",
     "Give a high-energy 15-second live weather report of your room like a TV news anchor!",
-    "Try to touch your nose with your tongue on webcam for 6 seconds without laughing!",
+    "Imitate the Google Maps GPS voice saying 'In 100 meters, take a sharp left' on mic!",
     "Deliver a 15-second breaking news bulletin: 'Local developer survives Monday morning standup!'",
     "Recreate your funniest reaction emoji on webcam and freeze completely for 10 seconds!",
     "Give an emotional award acceptance speech thanking Ctrl+Z and StackOverflow for your career!",
