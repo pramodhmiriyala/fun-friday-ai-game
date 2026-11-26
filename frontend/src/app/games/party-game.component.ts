@@ -20,10 +20,10 @@ const PANIC_PTS = 10;
       <div class="defuse-wrap">
         <a routerLink="/" class="back">← Arena</a>
         <div class="mt-2">
-          <span class="badge-pill">💣 20-Second Team Challenge</span>
+          <span class="badge-pill">🌪️ 20-Second Tongue Twister</span>
         </div>
         <h1 class="page-title grad-text">Tongue Twister Defuse</h1>
-        <p class="muted sub-info">A player on stage must repeat the tricky tongue twister <b>3 TIMES FAST</b> before the 20-second timer runs out!</p>
+        <p class="muted sub-info">A player on stage must repeat the famous tongue twister <b>3 TIMES FAST</b> before the 20-second timer runs out!</p>
 
         <div class="glass glass-pad mb-4"><app-team-picker /></div>
         @if (error()) { <div class="alert-neon mb-3">{{ error() }}</div> }
@@ -33,7 +33,7 @@ const PANIC_PTS = 10;
             <div class="stage glass" [class.ready]="phase() === 'ready'" [class.live]="phase() === 'live'" [class.boom]="phase() === 'boom'" [class.defused]="phase() === 'defused'">
               @if (phase() === 'idle') {
                 <div class="text-center py-4">
-                  <div class="ic">👅</div>
+                  <div class="ic">🌪️</div>
                   <h2 class="display">Say it 3 Times Fast!</h2>
                   <p class="muted max-w mt-2">
                     Player from <b class="text-white">{{ teams.activeTeam()?.name ?? 'active team' }}</b> takes the mic.

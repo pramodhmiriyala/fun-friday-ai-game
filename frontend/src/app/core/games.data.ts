@@ -58,7 +58,7 @@ export const GAMES: GameDef[] = [
   {
     id: 'panic',
     title: 'Tongue Twister Defuse',
-    icon: '💣',
+    icon: '🌪️',
     desc: 'Repeat the tricky tongue twister 3 times fast before the 20-second timer hits zero!',
     route: '/play/panic-defuse',
     section: 'ai',

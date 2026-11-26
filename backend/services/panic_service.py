@@ -1,5 +1,5 @@
-"""Tongue Twister Defuse service — generates moderate-to-challenging, rhythmic, tricky tongue twisters.
-Teams must repeat the tongue twister 3 times fast within 20 seconds before the bomb goes BOOM!
+"""Tongue Twister Defuse service — generates famous, classic English tongue twisters.
+Teams must repeat the famous tongue twister 3 times fast within 20 seconds before the timer runs out!
 """
 import random
 import time
@@ -8,66 +8,70 @@ from .llm import chat_json, model_for, AIUnavailable
 _recent_tasks: list[str] = []
 MAX_HISTORY = 80
 
-SYSTEM = """You create hilarious, fast, rhythmic, MODERATE-DIFFICULTY Tongue Twisters for an Indian corporate team event game called 'Tongue Twister Defuse'.
-A team player has 20 SECONDS to speak the given tongue twister CLEARLY 3 TIMES IN A ROW without tripping over their words, or the bomb explodes!
+SYSTEM = """You generate world-famous, classic, beloved English Tongue Twisters for a corporate team event game called 'Tongue Twister Defuse'.
+A team player has 20 SECONDS to speak the given famous English tongue twister CLEARLY 3 TIMES IN A ROW!
 
-DIFFICULTY LEVEL: MODERATE (NOT TOO EASY, NOT IMPOSSIBLE):
-- Length: 8 to 14 words per twister.
-- DO NOT generate overly simplistic or tiny 4-5 word phrases (e.g., avoid "Red lorry, yellow lorry" or "Buggy branch broke binary build" — these are too short and easy).
-- Use rich phonetic traps with alternating consonants:
-  * s / sh / ch / th / tr / p / b / k / d combinations.
-  * Rapid vowel shifts that cause the tongue to slip when repeated at high speed under a 20-second countdown.
+CRITICAL RULES:
+- ONLY FAMOUS ENGLISH TONGUE TWISTERS: Use universally recognized, classic English tongue twisters that people love and recognize.
+- NO Hindi/desi phrases.
+- NO custom tech or developer jargon.
+- Category type is always: "Famous English Twister".
+- Icon/emoji is: "🌪️".
 
-TONGUE TWISTER STYLES & EXAMPLES FOR INSPIRATION:
-1. TECH & DEVELOPER TWISTERS (MODERATE):
-   - "Selfish software shell scripts seldom shift seventy-seven server snapshots safely"
-   - "Clever cloud coders constantly catch clumsy compile crashes in production containers"
-   - "Ten tired testers thoroughly tested twenty-two tricky technical tools together"
-   - "Brisk brave backend builders blend big binary branches before breaking builds"
-   - "Dynamic Docker daemons deploy distributed database drivers during daily debugging"
-
-2. CLASSIC & ALLITERATION TWISTERS (MODERATE):
-   - "Specific Pacific plastic packets packed prompt production patches promptly"
-   - "How can a clam cram in a clean cream can quickly and quietly?"
-   - "Which wicked witch wished which wicked wish while weaving web widgets?"
-   - "Twelve twin twisted twigs twitched twenty times together tightly"
-   - "She sees cheese, surely six shining Swiss cheeses she shall swiftly seize"
-
-3. DESI & INDIAN TWISTERS (MODERATE):
-   - "Khadag Singh ke khadakne se khadakti hain khidkiyan, khidkiyon ke khadakne se khadakta hai Khadag Singh"
-   - "Papad pakka ya kacha papad, kacha papad ya pakka papad, bolo jaldi"
-   - "Chandu ke chacha ne Chandu ki chachi ko Chandni Chowk mein chaandi ke chammach se chatni chatai"
-   - "Tota udta, patang udta, toote taar se tota tadapta tanaatan"
-   - "Upper roller, lower roller, super roller, speed roller, double roller daily"
-
-GUIDELINES:
-- Clean, workplace-safe, high-energy, fun for corporate teams.
-- Must be instantly legible on a projector screen.
-- CRITICAL ANTI-REPETITION: Never repeat recently generated tongue twisters.
+EXAMPLES OF FAMOUS ENGLISH TONGUE TWISTERS:
+- "Peter Piper picked a peck of pickled peppers"
+- "She sells seashells by the seashore"
+- "How much wood would a woodchuck chuck if a woodchuck could chuck wood?"
+- "Betty Botter bought some butter, but she said the butter's bitter"
+- "I scream, you scream, we all scream for ice cream"
+- "Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair, Fuzzy Wuzzy wasn't fuzzy, was he?"
+- "I saw Susie sitting in a shoeshine shop"
+- "A proper cup of coffee from a proper copper coffee pot"
+- "Which witch wished which wicked wish?"
+- "Six sleek swans swam swiftly southwards"
+- "If a dog chews shoes, whose shoes does he choose?"
+- "Fred fed Ted bread, and Ted fed Fred bread"
+- "We surely shall see the sun shine soon"
+- "Can you can a can as a canner can can a can?"
+- "Unique New York, unique New York, you know you need unique New York"
+- "Near an ear, a nearer ear, a nearly eerie ear"
+- "Lesser leather never weathered wetter weather better"
+- "I thought a thought, but the thought I thought wasn't the thought I thought I thought"
 
 Return JSON ONLY:
 {
   "tasks": [
     {
-      "task": "Say 3 times fast: 'Specific Pacific plastic packets packed prompt production patches promptly'",
-      "type": "Phonetic Trap",
-      "emoji": "⚡"
+      "task": "Say 3 times fast: 'Peter Piper picked a peck of pickled peppers'",
+      "type": "Famous English Twister",
+      "emoji": "🌪️"
     }
   ]
 }
 """
 
-BUILTIN_MODERATE = [
-    {"task": "Say 3 times fast: 'Specific Pacific plastic packets packed prompt production patches promptly'", "type": "Phonetic Trap", "emoji": "⚡"},
-    {"task": "Say 3 times fast: 'Selfish software shell scripts seldom shift seventy-seven server snapshots safely'", "type": "Tech Twister", "emoji": "💻"},
-    {"task": "Say 3 times fast: 'Khadag Singh ke khadakne se khadakti hain khidkiyan, khidkiyon ke khadakne se Khadag Singh'", "type": "Desi Twister", "emoji": "🔥"},
-    {"task": "Say 3 times fast: 'Clever cloud coders constantly catch clumsy compile crashes in production containers'", "type": "DevOps Trap", "emoji": "☁️"},
-    {"task": "Say 3 times fast: 'Twelve twin twisted twigs twitched twenty times together tightly'", "type": "Word Maze", "emoji": "🌀"},
-    {"task": "Say 3 times fast: 'Chandu ke chacha ne Chandu ki chachi ko chaandi ke chammach se chatni chatai'", "type": "Desi Classic", "emoji": "🥄"},
-    {"task": "Say 3 times fast: 'Brisk brave backend builders blend big binary branches before breaking builds'", "type": "Coder Tongue Trap", "emoji": "🛠️"},
-    {"task": "Say 3 times fast: 'She sees cheese, surely six shining Swiss cheeses she shall swiftly seize'", "type": "S-Sound Trap", "emoji": "🧀"},
-    {"task": "Say 3 times fast: 'Papad pakka ya kacha papad, kacha papad ya pakka papad, bolo jaldi'", "type": "Desi Rapid", "emoji": "🌶️"},
-    {"task": "Say 3 times fast: 'How can a clam cram in a clean cream can quickly and quietly?'", "type": "Classic Speed", "emoji": "⏱️"},
+FAMOUS_ENGLISH_TWISTERS = [
+    {"task": "Say 3 times fast: 'Peter Piper picked a peck of pickled peppers'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'She sells seashells by the seashore'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'How much wood would a woodchuck chuck if a woodchuck could chuck wood?'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Betty Botter bought some butter, but she said the butter was bitter'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'I saw Susie sitting in a shoeshine shop'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'A proper cup of coffee from a proper copper coffee pot'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Fuzzy Wuzzy was a bear, Fuzzy Wuzzy had no hair, Fuzzy Wuzzy wasn't fuzzy, was he?'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Which witch wished which wicked wish?'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Six sleek swans swam swiftly southwards'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'If a dog chews shoes, whose shoes does he choose?'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Fred fed Ted bread, and Ted fed Fred bread'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'We surely shall see the sun shine soon'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Can you can a can as a canner can can a can?'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Unique New York, unique New York, you know you need unique New York'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Near an ear, a nearer ear, a nearly eerie ear'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Lesser leather never weathered wetter weather better'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'I thought a thought, but the thought I thought wasn't the thought I thought I thought'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Red lorry, yellow lorry, red lorry, yellow lorry'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Eleven benevolent elephants playing proudly'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Four fine fresh fish for you freshly fried'", "type": "Famous English Twister", "emoji": "🌪️"},
+    {"task": "Say 3 times fast: 'Give papa a cup of proper coffee in a copper coffee cup'", "type": "Famous English Twister", "emoji": "🌪️"},
 ]
 
 
@@ -80,7 +84,8 @@ def generate_tasks(count: int, exclude: list[str]) -> tuple[list[dict], str]:
         data = chat_json(
             SYSTEM,
             (
-                f"Generate {count} unique, moderate-to-challenging tongue twisters (8 to 14 words with tricky phonetic traps) for teams to repeat 3 times in 20 seconds. "
+                f"Pick or generate {count} unique, famous, classic English tongue twisters. "
+                f"NO tech jargon, NO Hindi/desi words. Only famous English tongue twisters. "
                 f"CRITICAL: Avoid any of these previously played twisters: {ex}. "
                 f"Randomness seed: {time.time()}."
             ),
@@ -93,8 +98,8 @@ def generate_tasks(count: int, exclude: list[str]) -> tuple[list[dict], str]:
             if task:
                 out.append({
                     "task": task,
-                    "type": str(t.get("type", "Moderate Twister")).strip()[:35],
-                    "emoji": str(t.get("emoji", "👅")).strip()[:4] or "👅",
+                    "type": "Famous English Twister",
+                    "emoji": "🌪️",
                 })
                 _recent_tasks.append(task)
 
@@ -106,10 +111,10 @@ def generate_tasks(count: int, exclude: list[str]) -> tuple[list[dict], str]:
     except Exception:
         pass
 
-    # Built-in moderate pool fallback
-    available = [t for t in BUILTIN_MODERATE if t["task"] not in combined_exclude]
+    # Built-in famous English pool fallback
+    available = [t for t in FAMOUS_ENGLISH_TWISTERS if t["task"] not in combined_exclude]
     if not available:
-        available = BUILTIN_MODERATE
+        available = FAMOUS_ENGLISH_TWISTERS
     random.shuffle(available)
     picked = available[:count]
     return picked, "builtin"
