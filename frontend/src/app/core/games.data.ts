@@ -81,16 +81,16 @@ export const PUZZLES: { emoji: string; answer: string; hint: string }[] = [
 
 /** 100% Virtual Meeting / Webcam Friendly Bonus Challenges (No dancing, no walking, desk & mic only!) */
 export const BONUS_CHALLENGES = [
-  { text: 'LUCKY JACKPOT: Instant 20 bonus points!', pts: 20, icon: '🎁' },
-  { text: 'NAAPTOL PITCH: Sell any item on your desk (mug, pen, stapler) in 15s like a super excited TV host!', pts: 15, icon: '📢' },
-  { text: 'SHARK TANK: Pitch a crazy invention (e.g. Wi-Fi Samosa) to the team in 15 seconds!', pts: 15, icon: '🦈' },
-  { text: 'DRAMATIC SERIAL: Say "Mera code crash ho gaya!" on webcam with 3 dramatic gasps and shock reactions!', pts: 10, icon: '🎭' },
-  { text: 'DESK TREASURE: Show the weirdest item within arm\'s reach of your desk in 10 seconds!', pts: 10, icon: '🔍' },
-  { text: 'NAME 5 MOVIES: Name 5 movies with a number in the title in 10 seconds!', pts: 15, icon: '🎬' },
-  { text: 'FOOD BLITZ: Name 5 regional Indian street foods in 10 seconds without pausing!', pts: 10, icon: '🍕' },
-  { text: 'WEBCAM FREEZE: Freeze completely like a buffering video call for 15 seconds without laughing!', pts: 10, icon: '🗿' },
-  { text: 'CRICKET COMMENTARY: Give dramatic IPL commentary on someone drinking water on call!', pts: 15, icon: '🏏' },
-  { text: 'SILENT MIME: Silently mime "My Wi-Fi died during client presentation" on camera!', pts: 10, icon: '💻' },
-  { text: 'CARTOON VOICE: Say "Happy Fun Friday team!" in your best cartoon or Minion voice!', pts: 10, icon: '🎙️' },
-  { text: 'EMOJI FACE: Recreate 3 emojis (😂, 😱, 🧐) using only your facial expressions on webcam!', pts: 10, icon: '😜' },
+  { text: 'LUCKY JACKPOT: Instant 20 bonus points for your team!', pts: 20, icon: '🎁' },
+  { text: 'NAAPTOL PITCH: Sell any item on your desk (mug, pen, stapler) in 15 seconds like an urgent TV shopping host!', pts: 15, icon: '📢' },
+  { text: 'SHARK TANK: Pitch an absurd startup idea (like Bluetooth Samosa or Wi-Fi Chai) to the team in 15 seconds!', pts: 15, icon: '🦈' },
+  { text: 'DRAMATIC SERIAL: Shout "Mera code crash ho gaya!" on webcam with 3 dramatic soap-opera gasps!', pts: 10, icon: '🎭' },
+  { text: 'DESK SCAVENGER: Show the most unexpected item within arm\'s reach of your desk to your camera in 10s!', pts: 10, icon: '🔍' },
+  { text: 'MOVIE SPEEDRUN: Name 5 famous movies that have a number in their title in 10 seconds!', pts: 15, icon: '🎬' },
+  { text: 'FOOD BLITZ: Name 5 delicious Indian street foods in 10 seconds without pausing!', pts: 10, icon: '🍕' },
+  { text: 'WEBCAM FREEZE: Freeze completely like a buffering video call with a funny expression for 15 seconds!', pts: 10, icon: '🗿' },
+  { text: 'IPL COMMENTARY: Give high-speed Hindi or English IPL commentary on someone on call sipping water or typing!', pts: 15, icon: '🏏' },
+  { text: 'SILENT MIME: Silently act out "My Wi-Fi died during a critical client demo" using only gestures on camera!', pts: 10, icon: '💻' },
+  { text: 'CARTOON VOICE: Say "Happy Fun Friday team, let\'s win this!" in your best cartoon or Minion voice!', pts: 10, icon: '🎙️' },
+  { text: 'EMOJI FACE: Act out 3 funny facial expressions in a row: Laughing, Shocked, and Confused on webcam!', pts: 10, icon: '😜' },
 ];

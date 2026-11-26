@@ -8,6 +8,7 @@ export const routes: Routes = [
   { path: 'play/panic-defuse', data: { game: 'panic' }, title: 'Tongue Twister Defuse – Fun Connect', loadComponent: () => import('./games/party-game.component').then((m) => m.PartyGameComponent) },
   { path: 'classic/:id', title: 'Team Challenge – Fun Connect', loadComponent: () => import('./games/classic-game.component').then((m) => m.ClassicGameComponent) },
   { path: 'wheel', title: 'Spin Wheel – Fun Connect', loadComponent: () => import('./pages/wheel.page').then((m) => m.WheelPageComponent) },
+  { path: 'guide', title: 'Game Guide & Rules – Fun Connect', loadComponent: () => import('./pages/game-guide.page').then((m) => m.GameGuidePageComponent) },
   { path: 'leaderboard', title: 'Leaderboard – Fun Connect', loadComponent: () => import('./pages/leaderboard.page').then((m) => m.LeaderboardPageComponent) },
   { path: 'winner', title: 'Winner! – Fun Connect', loadComponent: () => import('./pages/winner.page').then((m) => m.WinnerPageComponent) },
   { path: 'host', title: 'Host Dashboard – Fun Connect', loadComponent: () => import('./pages/host-dashboard.page').then((m) => m.HostDashboardComponent) },

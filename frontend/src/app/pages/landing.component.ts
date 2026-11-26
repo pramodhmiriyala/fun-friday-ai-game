@@ -70,6 +70,7 @@ import { SoundService } from '../services/sound.service';
           <a href="#arena" class="btn-neon btn-lg-x pulse" id="cta-play" (click)="sound.click()">🚀 Enter the Arena</a>
           <a routerLink="/wheel" class="btn-neon btn-pink btn-lg-x" id="cta-wheel">🎡 Spin the Wheel</a>
         }
+        <a routerLink="/guide" class="btn-ghost btn-lg-x" id="cta-guide">📖 Game Guide & Rules</a>
         <a routerLink="/host" class="btn-ghost btn-lg-x" id="cta-host">🎛 Host Dashboard</a>
       </div>
     </header>

@@ -27,7 +27,9 @@ import { TeamService } from '../services/team.service';
           <div class="burst"></div>
           <div class="ic">{{ r.icon }}</div>
           <div class="kicker">{{ mode() === 'teams' ? 'The chosen team is' : mode() === 'games' ? 'Next game is' : 'Bonus challenge!' }}</div>
-          <h2 class="display name grad-text">{{ mode() === 'bonus' ? r.ref : r.label }}</h2>
+          <h2 class="display name" [class.grad-text]="mode() !== 'bonus'" [class.bonus-text]="mode() === 'bonus'">
+            {{ mode() === 'bonus' ? r.ref : r.label }}
+          </h2>
           @if (mode() === 'bonus') {
             <div class="pts display">+{{ r.pts }} pts</div>
             <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">

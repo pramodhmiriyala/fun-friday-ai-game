@@ -18,6 +18,7 @@ import { ConfirmDialogComponent } from './components/confirm-dialog.component';
       <div class="links">
         <a routerLink="/" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }" id="nav-home">Home</a>
         <a routerLink="/teams" routerLinkActive="on" id="nav-teams">Teams</a>
+        <a routerLink="/guide" routerLinkActive="on" id="nav-guide">📖 Game Guide</a>
         <a routerLink="/wheel" routerLinkActive="on" id="nav-wheel">Spin Wheel</a>
         <a routerLink="/leaderboard" routerLinkActive="on" id="nav-leaderboard">Leaderboard</a>
         <a routerLink="/host" routerLinkActive="on" id="nav-host">Host</a>
