@@ -57,11 +57,11 @@ import { SoundService } from '../services/sound.service';
 
       <h1 class="title display fade-in" style="animation-delay:.1s">
         <span class="grad-text glitch" data-t="FUN CONNECT">FUN CONNECT</span>
-        <span class="sub">– Connect, Play & Win Together!</span>
+        <span class="sub">– Forget about the deadlines, it's game time! 🚀</span>
       </h1>
       <p class="lead muted fade-in" style="animation-delay:.25s">
         5 engaging team challenges · Spinning wheel of fate · Live leaderboard — all on one big screen.<br>
-        <b class="text-white">Fresh content every session — energized teamwork and unforgettable laughs!</b>
+        <b class="text-white">Connect, play & win together — energized teamwork and unforgettable laughs!</b>
       </p>
       <div class="cta fade-in" style="animation-delay:.4s">
         @if (teams.teams().length < 2) {

@@ -134,7 +134,10 @@ import { HostAuthService } from '../services/host-auth.service';
           <div class="stage glass">
             <div class="text-center w-100">
               @if (c.person(); as person) {
-                <div class="lbl">🎯 RIDDLE {{ pr.pos + 1 }} OF {{ c.state().person.people.length || 5 }} · {{ person.category ?? 'RIDDLE' }} · CLUE {{ pr.clues }} OF {{ person.clues.length }}</div>
+                <div class="category-pill-wrap mb-2">
+                  <span class="category-pill pop-in">{{ person.category || '💡 Riddle Challenge' }}</span>
+                </div>
+                <div class="lbl">🎯 RIDDLE {{ pr.pos + 1 }} OF {{ c.state().person.people.length || 5 }} · CLUE {{ pr.clues }} OF {{ person.clues.length }}</div>
                 <div class="clues">
                   @for (cl of person.clues.slice(0, pr.clues); track $index) {
                     <div class="clue pop-in glass"><span class="cn">{{ $index + 1 }}</span>{{ cl }}</div>
@@ -204,6 +207,8 @@ import { HostAuthService } from '../services/host-auth.service';
     .emo { position: absolute; inset: 0; display: grid; place-items: center; font-size: min(14rem, 45vw); }
     .tiles { position: absolute; inset: 0; display: grid; grid-template: repeat(3, 1fr) / repeat(3, 1fr); }
     .tile { background: linear-gradient(135deg, #3b1d8f, #7c3aed); border: 1px solid rgba(255,255,255,.2); transition: opacity .6s, transform .6s; } .tile.gone { opacity: 0; transform: scale(.4) rotate(40deg); }
+    .category-pill-wrap { display: flex; justify-content: center; }
+    .category-pill { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem 1.2rem; border-radius: 999px; font-size: 1.05rem; font-weight: 800; background: linear-gradient(135deg, rgba(168,85,247,.35), rgba(34,211,238,.35)); border: 1.5px solid rgba(168,85,247,.6); color: #fff; box-shadow: 0 0 18px rgba(168,85,247,.4); letter-spacing: .02em; }
     .clues { display: grid; gap: .7rem; max-width: 760px; margin: 1rem auto; }
     .clue { padding: .9rem 1.2rem; text-align: left; font-size: 1.2rem; display: flex; gap: 1rem; align-items: center; }
     .cn { width: 34px; height: 34px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; font-weight: 800; flex: none; }

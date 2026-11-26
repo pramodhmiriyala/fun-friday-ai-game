@@ -81,13 +81,14 @@ export const PUZZLES: { emoji: string; answer: string; hint: string }[] = [
 
 export const BONUS_CHALLENGES = [
   { text: 'LUCKY JACKPOT: Instant 20 bonus points!', pts: 20, icon: '🎁' },
-  { text: 'Perform an iconic hook step for 10 seconds (Naatu Naatu, Lungi Dance, Pushpa swipe)', pts: 10, icon: '💃' },
-  { text: 'Hum or sing the chorus of any famous Indian song in 15 seconds', pts: 10, icon: '🎤' },
-  { text: 'Sell a cup of office cutting chai like it is a luxury ₹5,000 gadget', pts: 15, icon: '☕' },
+  { text: 'NAAPTOL PITCH: Sell an empty coffee cup in 15s like an excited TV teleshopping host ("Bhaiyo aur behno, abhi call karein!")', pts: 15, icon: '📢' },
+  { text: 'SHARK TANK: Pitch a crazy invention (e.g. Bluetooth Samosa or Wi-Fi Umbrella) to the other teams in 15s', pts: 15, icon: '🦈' },
+  { text: 'DRAMATIC SERIAL: Say "Mera code crash ho gaya!" in dramatic Indian TV serial style with 3 gasps and shock reactions', pts: 10, icon: '🎭' },
+  { text: 'Sell a cup of office cutting chai like it is a luxury ₹50,000 gadget', pts: 15, icon: '☕' },
   { text: 'Name 5 Indian movies with a number in the title in 10 seconds', pts: 15, icon: '🎬' },
   { text: 'Name 5 regional Indian street foods in 10 seconds without pausing', pts: 10, icon: '🍕' },
   { text: 'Freeze completely like an office statue for 15 seconds without laughing', pts: 5, icon: '🗿' },
   { text: 'Give dramatic cricket commentary on a colleague drinking a sip of water', pts: 15, icon: '🏏' },
   { text: 'Silently act out "Code worked on localhost, but crashed in production"', pts: 10, icon: '💻' },
-  { text: 'Do a slow-motion cinematic hero/superstar walk for 10 seconds', pts: 10, icon: '🕶️' },
+  { text: 'Do a slow-motion cinematic superstar walk across the stage for 10 seconds', pts: 10, icon: '🕶️' },
 ];

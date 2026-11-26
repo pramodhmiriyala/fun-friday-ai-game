@@ -153,10 +153,11 @@ Use this exact structure:
 }
 
 Allowed topic values:
-- General Knowledge
-- Office Humour
-- Tech & Dev
-- Everyday Life & Fun
+- 📍 GK - Famous Place (for iconic places, monuments, landmarks, states, cities)
+- 🍲 Food Item (for regional food, street delicacies, famous Indian snacks or chai)
+- ☕ Office Humour (for workplace moments, Teams calls, mute button, Friday rush)
+- 💻 Tech & Dev (for GitHub, code, cloud, Azure, developer habits)
+- 💡 Everyday Item (for household gadgets, UPI scanners, chargers, everyday staples)
 
 Allowed difficulty values:
 - Easy
@@ -222,12 +223,29 @@ def generate_people(count: int, exclude: list[str]) -> tuple[list[dict], str]:
     items = data.get("riddles", []) or data.get("people", [])
     for item in items:
         name = str(item.get("answer") or item.get("name") or "").strip()[:60]
-        category = str(item.get("topic") or item.get("category") or "General Knowledge").strip()[:35]
+        raw_cat = str(item.get("topic") or item.get("category") or "General Knowledge").strip()[:40]
         clues = [str(c).strip()[:180] for c in item.get("clues", []) if str(c).strip()][:5]
         funny_reveal = str(item.get("funny_reveal", "")).strip()[:140]
 
         if not name or len(clues) < 4 or name.lower() in ex:
             continue
+
+        # Smart category normalization with clear emoji badges
+        cat_lower = raw_cat.lower()
+        if any(k in cat_lower for k in ["place", "monument", "landmark", "city", "state", "geography", "gk"]):
+            category = "📍 GK - Famous Place"
+        elif any(k in cat_lower for k in ["food", "dish", "delicacy", "chai", "snack", "sweet", "biryani", "samosa"]):
+            category = "🍲 Food Item"
+        elif any(k in cat_lower for k in ["office", "work", "meeting", "desk", "corporate", "humour", "humor", "team"]):
+            category = "☕ Office Humour"
+        elif any(k in cat_lower for k in ["tech", "dev", "code", "cloud", "software", "git", "azure", "tool"]):
+            category = "💻 Tech & Dev"
+        elif any(k in cat_lower for k in ["gadget", "everyday", "life", "item", "object", "home"]):
+            category = "💡 Everyday Item"
+        elif any(e in raw_cat for e in ["📍", "🍲", "☕", "💻", "💡"]):
+            category = raw_cat
+        else:
+            category = f"💡 {raw_cat}"
 
         people.append({
             "name": name,

@@ -35,7 +35,7 @@ import { TeamPickerComponent } from '../components/team-picker.component';
           <div class="g-icon">🎁</div>
           <div class="g-body">
             <div class="g-title">Bonus Challenge</div>
-            <div class="g-desc">Spin for a <b>wild bonus task</b> — dance, joke, or tongue-twister. Win extra points!</div>
+            <div class="g-desc">Spin for a <b>wild bonus task</b> — funny sales pitch, mime, or rapid challenge. Win extra points!</div>
             <div class="g-when">📌 Use when: Anytime mid-game you want to add excitement or fill time</div>
           </div>
         </div>

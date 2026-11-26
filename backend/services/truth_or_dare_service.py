@@ -58,44 +58,37 @@ Return JSON only:
 """
 
 DARE_SYSTEM = """You generate hilarious, lighthearted, safe 'DARE' challenges for an Indian IT company party.
-Audience: Indian tech professionals with senior leadership present.
+Audience: Indian tech professionals with senior leadership present playing in teams.
 
-CRITICAL RULE – SIMPLICITY & 20-SECOND ACTION:
+CRITICAL WORKPLACE & TEAM RULES:
+- STRICT PROHIBITION ON DANCING: NEVER assign dancing, hook steps, or dance-related tasks! Teams are in an office setting; challenges must be verbal, roleplay, mime, or funny improv.
+- HILARIOUS IMPROV & SALES PITCH FOCUS: Feature funny teleshopping sales pitches (like Naaptol/Telemart TV host selling ordinary objects), Shark Tank pitches, dramatic serial reactions, sports commentaries, and movie trailer voiceovers!
 - Super clear, simple instructions doable on stage in 15–20 seconds.
-- Fun roleplay, mimicry, humorous sales pitches, or pantomime.
 - NO complicated or embarrassing tasks. 100% workplace-safe and friendly.
 
 GOLD-STANDARD EXAMPLES (FOR STYLE AND ACTION CALIBRATION ONLY):
-1. Act like a frustrated developer whose code works perfectly until the manager arrives.
-2. Sell a samosa like you're advertising a five-star luxury product.
-3. Give a breaking-news report about someone stealing your office chair.
-4. Imitate a laptop that has only 1% battery left.
-5. Explain how to make tea like you're teaching a complicated programming language.
-6. Pretend you're a robot attending its first office meeting.
-7. Give a motivational speech to your mobile phone for surviving another working day.
-8. Act like your internet connection is disconnecting during an important presentation.
-9. Introduce yourself like you're a superstar entering a movie award ceremony.
-10. Describe your Monday morning using only dramatic facial expressions and gestures.
-11. Advertise an ordinary office stapler as the world's most advanced invention.
-12. Speak for 15 seconds like a cricket commentator describing someone typing an email.
-13. Pretend you're a customer support agent handling a complaint from an angry mouse.
-14. Explain why Friday should have 48 hours like you're presenting to the government.
-15. Imitate a computer restarting after installing an update.
+1. NAAPTOL SALES PITCH: Sell an empty coffee cup or an ordinary pen like an excited Naaptol TV host ("Bhaiyo aur behno, yeh aam cup nahi hai, abhi call karein aur paayein 90% discount!").
+2. SHARK TANK: Pitch a ridiculous invention (e.g., Bluetooth-powered samosa or anti-meeting sunglasses) to the other teams in 20 seconds.
+3. INDIAN SERIAL DRAMA: Say "Mera code production mein phat gaya!" with dramatic soap opera gasps and shock reactions.
+4. MOVIE TRAILER: Narrate a teammate's Monday morning arrival in a deep, booming Hollywood movie trailer voice.
+5. CRICKET COMMENTATOR: Speak for 15 seconds like an energetic IPL cricket commentator describing someone drinking tea or typing an email.
+6. LUXURY AD: Sell a single sticky note or staple pin as a ₹1,00,000 Swiss luxury masterpiece.
+7. ACT LIKE WI-FI: Act like a Wi-Fi router whose signal drops whenever someone walks past you.
+8. ROBOT STANDUP: Introduce your team in a rigid robotic voice as if attending an IT standup meeting in the year 3000.
+9. SILENT MIME: Silently act out "Client scheduled an emergency meeting on Friday at 5:00 PM" using only facial expressions.
+10. MOTIVATIONAL SPEECH: Deliver an emotional, motivational pep-talk to your laptop charger for working overtime.
+11. BREAKING NEWS: Deliver a breaking-news bulletin about someone stealing the last samosa from the office pantry.
+12. CUSTOMER CARE BOT: Act like an overly polite automated customer support IVR that malfunctions mid-sentence.
 
 CRITICAL ANTI-REPETITION RULE:
-- DO NOT copy or output any of the 15 examples above verbatim! They are for style demonstration only.
+- DO NOT copy or output any of the examples above verbatim! They are for style demonstration only.
 - Every generated dare MUST be a 100% brand-new, fresh, and original challenge.
-
-STRICT RULES:
-- Generate exactly ONE dare per request.
-- No adult, sexual, violent, or abusive content. No alcohol or drugs.
-- Keep the dare to 1-2 short, straightforward sentences.
-- No physical hazards, no props needed.
+- NEVER generate dance tasks.
 
 Return JSON only:
 {
   "category": "Dare",
-  "prompt": "Sell a samosa like you're advertising a five-star luxury product."
+  "prompt": "Sell an empty coffee cup in high-energy Naaptol TV style: 'Bhaiyo aur behno, abhi call karein!'"
 }
 """
 
@@ -118,18 +111,17 @@ TRUTH_THEMES = [
 ]
 
 DARE_THEMES = [
-    "dramatically pitch an ordinary office item (stapler, pen, sticky note) as high-tech luxury",
-    "pantomime debugging code when suddenly your manager stands behind you",
-    "give a cricket-commentator running commentary on someone typing an email",
-    "imitate an automated customer support bot experiencing a hilarious system glitch",
-    "deliver an emotional award-acceptance speech to your laptop for not crashing today",
-    "act like your internet is frozen and audio breaking up during a crucial presentation",
-    "explain how to brew chai like you are deploying critical code to production",
-    "silently act out arriving at the desk on Monday morning using only facial expressions",
-    "give a breaking-news report about someone taking the last biscuit or samosa in the pantry",
-    "pretend to be a smartphone with only 1% battery desperately searching for a charger",
-    "deliver a dramatic motivational pep-talk to an office water bottle",
-    "introduce yourself like a Bollywood superstar entering an IT standup meeting",
+    "NAAPTOL SALES PITCH: Energetically pitch an ordinary office item (stapler, empty cup, broken pen) like a teleshopping TV host ('Bhaiyo aur behno, abhi call karein!')",
+    "SHARK TANK PITCH: Deliver a hilarious 15-second pitch for a bizarre invention asking for ₹5 Crores from the other teams",
+    "INDIAN SOAP OPERA: Deliver a daily work problem like a dramatic daily soap character with triple gasps and shock reactions",
+    "CRICKET COMMENTARY: Give energetic IPL-style commentary on someone typing an email or sipping water",
+    "HOLLYWOOD TRAILER: Narrate a teammate walking to the water cooler in an epic Hollywood action movie trailer voice",
+    "CUSTOMER CARE BOT: Imitate an automated customer support voice bot that starts glitching into funny Hindi/English errors",
+    "EMOTIONAL SPEECH: Deliver a dramatic Oscar-winning acceptance speech thanking your office chair for supporting you",
+    "FROZEN SCREEN: Act like your video and audio are buffering in slow-motion during an important client presentation",
+    "SILENT MIME: Express 'Finding out tomorrow is a working Saturday' using only facial expressions without making a sound",
+    "BREAKING NEWS: Deliver an urgent breaking-news TV bulletin about someone eating the last biscuit in the pantry",
+    "LUXURY BRAND: Sell a single paper clip or rubber band as a ₹50,000 Italian designer fashion accessory",
 ]
 
 
@@ -173,6 +165,7 @@ def get_dare(exclude: list[str]) -> tuple[dict, str]:
         DARE_SYSTEM,
         (
             f"Generate 1 unique, lighthearted, safe office dare challenge doable in 15-20 seconds. "
+            f"REMINDER: NO DANCE TASKS! Focus on hilarious roleplay, teleshopping pitches, or comedy. "
             f"Focus theme for this round: {theme}. "
             f"Do NOT copy any few-shot examples verbatim. "
             f"STRICTLY AVOID repeating any of these previously played dares: {ex_str}. "
