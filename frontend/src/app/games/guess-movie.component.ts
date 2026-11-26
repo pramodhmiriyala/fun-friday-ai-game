@@ -188,7 +188,7 @@ import { HostAuthService } from '../services/host-auth.service';
               <li>Pick a language: <b>Telugu, Tamil, Hindi, Kannada, Marathi, Bengali, Odia, English, etc.</b></li>
               <li>AI secretly picks a popular movie & reveals <b>Clue #1: The Story / Plot</b>!</li>
               <li>Try to guess the movie name from its plot!</li>
-              <li>Tap <b>Quick ask</b> for Hero/Heroine, Director, Release Year, or Genre & Theme</li>
+              <li>Tap <b>Quick ask</b> for Hero/Heroine, Director, Release Year, or famous Song/Dialogue in original language</li>
               <li>Click <b>💡 Ask AI for Another Clue</b> for more hints!</li>
               <li>Guess early to win maximum points! 🏆</li>
             </ol>
@@ -278,7 +278,7 @@ export class GuessMovieComponent {
     { icon: '🎭', label: 'Hero / Heroine', prompt: 'Who is the hero or heroine in this movie?' },
     { icon: '🎬', label: 'Director / Crew', prompt: 'Who directed this movie or who is a key crew member?' },
     { icon: '📅', label: 'Release Year',    prompt: 'Which year or era was this movie released in?' },
-    { icon: '🍿', label: 'Genre & Theme',   prompt: 'What is the genre, setting, and core theme of this movie?' },
+    { icon: '🎵', label: 'Song / Dialogue', prompt: 'Give a famous song line or iconic dialogue from this movie in its original language.' },
   ];
   @Input() embedded = false;
   inputText = '';

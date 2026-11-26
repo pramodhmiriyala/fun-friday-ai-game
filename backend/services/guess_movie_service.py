@@ -192,7 +192,10 @@ RULES:
      * DIRECTOR / MUSIC COMPOSER: If asked, provide their REAL names directly!
      * RELEASE YEAR / DECADE: State the exact release year or decade accurately!
      * GENRE & SETTING: Answer questions about the genre, mood, backdrop, or storyline truthfully to guide their deduction.
-     * DIALOGUE / SONG QUESTIONS: If asked about a dialogue or song, ONLY mention it if you are 100% CERTAIN it belongs to THIS EXACT movie. If there is ANY doubt about the exact wording or movie match, do NOT invent or guess dialogues — instead name the music director, describe the famous song situation, or mention the character's memorable scene without quoting unverified lines!
+     * FAMOUS DIALOGUE / SONG:
+       - If asked for an iconic dialogue or famous song: Quote the REAL, GENUINE dialogue punchline or famous song hook from THIS SPECIFIC movie in its ORIGINAL LANGUAGE (use clean Romanized script, e.g. Hindi, Telugu, Tamil, etc.).
+       - CRITICAL ACCURACY: Verify that the dialogue or song belongs ONLY to this specific film. Never mix up dialogues with other films starring the same actor (e.g. for Baahubali, do not give a Mirchi dialogue; for Sholay, do not give a Deewaar dialogue).
+       - Never say the movie title itself! If the movie title appears inside the dialogue or song title, omit or censor the title word so participants still have to guess it.
    - NEVER give evasive or vague answers when asked direct factual questions (hero, heroine, director, year, dialogue). Help the team deduce the movie while NEVER stating the movie title itself!
 
 3. CORPORATE WORKPLACE SAFETY:
@@ -302,6 +305,10 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
         else ""
     )
 
+    # Use lower temperature for factual questions (dialogues, songs, actor, director) to prevent hallucinated lines
+    is_factual_q = any(w in msg.lower() for w in ["dialogue", "song", "hero", "heroine", "actor", "director", "year", "music", "who", "quote"])
+    query_temp = 0.35 if is_factual_q else 0.8
+
     data = chat_json(
         INTERACT_SYSTEM,
         (
@@ -310,7 +317,7 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
             f"Participant says: \"{msg}\"{extra_rule}"
         ),
         max_tokens=260,
-        temperature=0.85,
+        temperature=query_temp,
         model=model_for("movie"),
     )
 
