@@ -33,8 +33,6 @@ import { ConfirmDialogComponent } from './components/confirm-dialog.component';
                 [title]="sound.bgmPlaying() ? 'Mute Background Music' : 'Play Background Music'">
           {{ sound.bgmPlaying() ? '🎵 Music On' : '🔇 Music Off' }}
         </button>
-        <button class="btn-ghost sound-btn" id="btn-music-style" (click)="sound.cycleBgmStyle()"
-                title="Change music style">{{ sound.styleInfo().icon }} {{ sound.styleInfo().label }}</button>
         @if (auth.isHost()) {
           <button class="btn-ghost sound-btn" id="btn-host-logout" (click)="auth.logout()" title="Host logged in – click to log out">🔓 Host</button>
         }
