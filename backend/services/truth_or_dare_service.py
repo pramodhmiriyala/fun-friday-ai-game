@@ -61,17 +61,17 @@ CRITICAL VIRTUAL MEETING RULES:
 POPULAR EXAMPLES:
 1. Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!
 2. Give high-energy Hindi IPL commentary on someone in this call sipping tea or water!
-3. Do 3 dramatic Ekta Kapoor serial gasps shouting "Mera build pass ho gaya!" on webcam!
+3. Sing "Twinkle Twinkle Little Star" like an intense dramatic opera singer for 10 seconds!
 4. Apologize emotionally to your laptop charger for 100% battery overworking in 15 seconds!
-5. Pitch an absurd startup called "Wi-Fi Chai" to the team in 15 seconds like Shark Tank!
+5. Take a sip of water in extreme slow motion on webcam like a luxury TV commercial!
 6. Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!
-7. Imitate your project manager saying "Just a quick 5-minute sync" on mic!
-8. Do your best dramatic Bollywood villain laugh loudly on webcam for 10 seconds!
+7. Give a high-energy 15-second live weather report of your room like a TV news anchor!
+8. Try to touch your nose with your tongue on webcam for 6 seconds without laughing!
 9. Deliver a 15-second breaking news bulletin: "Local developer survives Monday morning standup!"
 10. Recreate your funniest reaction emoji on webcam and freeze completely for 10 seconds!
 11. Give an emotional award acceptance speech thanking Ctrl+Z and StackOverflow for your career!
 12. Speak for the next 15 seconds in an enthusiastic cartoon character voice!
-13. Show the closest weird object on your desk and explain why it helps you code!
+13. Count backwards from 20 to 1 as fast as you can without fumbling on mic!
 14. Act like your video is completely buffering with your mouth wide open for 10 seconds!
 
 Return JSON only:
@@ -94,7 +94,7 @@ POPULAR_BUILTIN_TRUTHS = [
     "Who in this meeting has the most believable fake smile during stressful calls?",
     "Have you ever pushed code on Friday evening and immediately shut down your laptop?",
     "What's the most embarrassing message you accidentally sent to the wrong project channel?",
-    "Have you ever checked your phone, seen missed calls from your lead, and panicked?",
+    "Have you ever checked your phone, seen 10 unread work notifications, and panicked?",
     "Have you ever typed 'Haha' in chat with a completely expressionless face?",
     "Have you ever opened a meeting link and secretly prayed nobody else joined?",
     "What is your biggest pet peeve during online team video calls?",
@@ -105,17 +105,17 @@ POPULAR_BUILTIN_TRUTHS = [
 POPULAR_BUILTIN_DARES = [
     "Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!",
     "Give high-energy Hindi IPL commentary on someone in this call sipping tea or water!",
-    "Do 3 dramatic Ekta Kapoor serial gasps shouting 'Mera build pass ho gaya!' on webcam!",
+    "Sing 'Twinkle Twinkle Little Star' like an intense dramatic opera singer for 10 seconds!",
     "Apologize emotionally to your laptop charger for 100% battery overworking in 15 seconds!",
-    "Pitch an absurd startup called 'Wi-Fi Chai' to the team in 15 seconds like Shark Tank!",
+    "Take a sip of water in extreme slow motion on webcam like a luxury TV commercial!",
     "Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!",
-    "Imitate your project manager saying 'Just a quick 5-minute sync' on mic!",
-    "Do your best dramatic Bollywood villain laugh loudly on webcam for 10 seconds!",
+    "Give a high-energy 15-second live weather report of your room like a TV news anchor!",
+    "Try to touch your nose with your tongue on webcam for 6 seconds without laughing!",
     "Deliver a 15-second breaking news bulletin: 'Local developer survives Monday morning standup!'",
     "Recreate your funniest reaction emoji on webcam and freeze completely for 10 seconds!",
     "Give an emotional award acceptance speech thanking Ctrl+Z and StackOverflow for your career!",
     "Speak for the next 15 seconds in an enthusiastic cartoon character voice!",
-    "Show the closest weird object on your desk and explain why it helps you code!",
+    "Count backwards from 20 to 1 as fast as you can without fumbling on mic!",
     "Act like your video is completely buffering with your mouth wide open for 10 seconds!",
     "Imitate an automated customer care IVR robot voice glitching out on mic!",
     "Explain your job in 15 seconds as if you are explaining to a 5-year-old child!",

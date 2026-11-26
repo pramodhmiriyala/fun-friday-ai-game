@@ -167,11 +167,11 @@ interface GameRule {
                     <div class="bonus-examples-grid">
                       <div class="bonus-chip">📢 <b>Naaptol Pitch:</b> Urgent 2 AM TV pitch for any desk item (+15 pts)</div>
                       <div class="bonus-chip">🏏 <b>IPL Commentary:</b> High-speed commentary on someone sipping water (+15 pts)</div>
-                      <div class="bonus-chip">🎭 <b>Dramatic Gasp:</b> "Mera code chal gaya!" Ekta Kapoor serial gasps (+10 pts)</div>
-                      <div class="bonus-chip">😈 <b>Bollywood Villain:</b> 10-second dramatic evil laugh on webcam (+10 pts)</div>
+                      <div class="bonus-chip">🎶 <b>Opera Singer:</b> "Twinkle Twinkle" in dramatic opera voice (+15 pts)</div>
+                      <div class="bonus-chip">☕ <b>Slow-Mo Sip:</b> Take a sip of water/tea in extreme slow motion (+10 pts)</div>
                       <div class="bonus-chip">🔌 <b>Charger Apology:</b> Emotionally apologize to your 100% charger (+10 pts)</div>
-                      <div class="bonus-chip">💼 <b>Manager Sync:</b> Imitate "Just a quick 5-minute sync" (+10 pts)</div>
-                      <div class="bonus-chip">🦈 <b>Shark Tank:</b> 15s pitch for "Wi-Fi Chai" (+15 pts)</div>
+                      <div class="bonus-chip">☀️ <b>Weather Anchor:</b> High-energy 15s weather report of room (+15 pts)</div>
+                      <div class="bonus-chip">👅 <b>Nose Touch:</b> Try to touch nose with tongue for 6 seconds (+10 pts)</div>
                       <div class="bonus-chip">🗿 <b>Webcam Freeze:</b> Buffering video call expression for 15s (+10 pts)</div>
                       <div class="bonus-chip">🎁 <b>Lucky Jackpot:</b> Free instant team bonus (+20 pts)</div>
                     </div>
