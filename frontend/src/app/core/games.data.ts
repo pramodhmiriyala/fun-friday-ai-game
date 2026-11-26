@@ -45,17 +45,6 @@ export const GAMES: GameDef[] = [
     scoreKey: 'truth-dare',
   },
   {
-    id: 'puzzle',
-    title: 'Picture Puzzle',
-    icon: '🧩',
-    desc: '9 tiles peel away one by one. Shout the answer before the board clears!',
-    route: '/classic/puzzle',
-    section: 'classic',
-    gradient: 'linear-gradient(135deg,#10b981,#06b6d4)',
-    tag: 'Tile Reveal',
-    scoreKey: 'puzzle',
-  },
-  {
     id: 'guess',
     title: 'Guess the Movie',
     icon: '🎬',

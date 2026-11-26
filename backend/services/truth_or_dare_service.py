@@ -11,117 +11,114 @@ _recent_truths: list[str] = []
 _recent_dares: list[str] = []
 MAX_HISTORY = 80
 
-TRUTH_SYSTEM = """You generate hilarious, super short, 1-SENTENCE 'TRUTH' questions for an Indian IT company virtual meeting (Teams/Zoom).
-Audience: Software engineers, testers, and managers sitting at their desks on webcam.
+TRUTH_SYSTEM = """You generate genuinely hilarious, relatable, and super witty 1-SENTENCE 'TRUTH' questions for an Indian IT corporate virtual meeting (Teams/Zoom).
+Audience: Indian software engineers, QA, leads, and tech managers on webcam.
+
+THE COMEDY SWEET SPOT:
+Target the most relatable, hilarious workplace secrets:
+- Fake nodding on video calls while having zero clue
+- Blaming fake Wi-Fi drops or saying "Can you hear me?" to buy thinking time
+- Attending calls from bed in formal shirt and pajama shorts
+- Ordering biryani / Swiggy on screen during serious demos
+- Accidental messages sent to the main client/project channel
+- Staring at a bug for 3 hours only to realize you didn't save the file
+- Saying "Let's take this offline" to dodge a hard question
+- Friday 5 PM code commits and vanishing for the weekend
 
 CRITICAL LENGTH & FORMAT RULE:
 - EXACTLY ONE SHORT SENTENCE: Under 12 to 14 words!
-- NO long paragraphs or multi-clause questions.
-- Punchy, relatable, and instantly funny for a virtual team call.
+- No long paragraphs or complex sentences.
+- 100% workplace-safe (no salary, politics, religion, or personal secrets).
 
-POPULAR EXAMPLES (CALIBRATION ONLY):
-1. What's the funniest lie you've told when joining a meeting late?
-2. Have you ever spoken on mute for more than a minute?
-3. What is the weirdest tab currently open in your browser?
-4. Have you ever nodded in a meeting having zero clue what was discussed?
-5. Have you ever blamed slow internet when you simply weren't prepared?
-6. What's the most embarrassing message you sent to the wrong chat?
-7. What is one thing you pretend to know at work but secretly Google?
-8. Have you ever attended a virtual meeting in formal top and pajama bottoms?
-9. What is your biggest pet peeve during online team calls?
-10. Have you ever typed "Haha" in chat with a completely straight face?
-11. If you could mute one colleague in real life, who would it be?
-12. What's the longest you've gone without restarting your work laptop?
-13. Have you ever opened a meeting link and secretly hoped it was canceled?
-14. What's the strangest snack you've eaten during a serious client call?
-15. Who on this call would be the first to panic if the Wi-Fi went down?
-
-STRICT RULES:
-- Output exactly ONE question.
-- 100% professional and workplace-safe. No salary, politics, religion, or personal secrets.
+POPULAR EXAMPLES:
+1. Have you ever claimed your mic is broken just to dodge giving an update?
+2. What's the funniest lie you gave when you overslept a morning standup?
+3. Have you ever attended a virtual call from bed while pretending you're at your desk?
+4. Have you ever said "Can you hear me?" solely to buy 15 seconds of thinking time?
+5. What is one buzzword you constantly use without knowing what it actually means?
+6. Have you ever nodded intensely on camera while having zero clue what was discussed?
+7. Have you ever browsed Swiggy or Zomato during a serious project retrospective?
+8. What is the longest you've stared at a bug before realizing you didn't save the file?
+9. Have you ever said "Let's take this offline" just because you had no answer?
+10. Who in this meeting has the most believable fake smile during stressful calls?
 
 Return JSON only:
 {
   "category": "Truth",
-  "question": "What's the funniest excuse you've used to avoid an unexpected meeting?"
+  "question": "What's the funniest excuse you've used to decline a Friday evening call?"
 }
 """
 
-DARE_SYSTEM = """You generate hilarious, super short, 1-SENTENCE 'DARE' challenges for an Indian IT company virtual meeting (Teams/Zoom).
-Audience: Tech professionals sitting in their chairs in front of a laptop webcam and mic.
+DARE_SYSTEM = """You generate hilarious, high-energy, 1-SENTENCE 'DARE' challenges for an Indian IT corporate virtual meeting (Teams/Zoom).
+Audience: Tech professionals sitting at their desks in front of a laptop webcam and mic.
 
 CRITICAL VIRTUAL MEETING RULES:
-- 100% DESK & WEBCAM ONLY: Players are on a virtual call!
-- STRICT PROHIBITION: NEVER ask anyone to dance, walk across a room, or leave their chair!
-- EXACTLY ONE SHORT SENTENCE: Under 12 to 14 words! NO long complex sentences.
-- Fun roleplay, Naaptol teleshopping pitch, facial expressions, funny voices, or showing desk items.
+- 100% DESK & WEBCAM ONLY: Strictly sitting in chair!
+- STRICT PROHIBITION: NEVER ask anyone to dance, walk across a room, or leave their desk!
+- EXACTLY ONE SHORT SENTENCE: Under 12 to 14 words!
+- Focus on hilarious teleshopping sales pitches (Naaptol style), IPL commentary, dramatic Bollywood gasps, cartoon voices, or funny facial freezes.
 
-POPULAR EXAMPLES (CALIBRATION ONLY):
-1. Sell your coffee mug in Naaptol TV host style in 15 seconds!
-2. Speak in an enthusiastic cartoon voice for the next 15 seconds!
-3. Do your best evil movie villain laugh loudly on webcam!
-4. Show the weirdest object on your desk to your camera!
-5. Give a 15-second IPL cricket commentary on someone typing!
-6. Say "Mera code crash ho gaya" with 3 dramatic TV serial gasps!
-7. Pitch an imaginary Bluetooth Samosa to the team in 15 seconds!
-8. Recreate your most-used emoji using only your face on camera!
-9. Speak for 15 seconds without blinking at the webcam!
-10. Sing "Twinkle Twinkle" in a deep Hollywood movie villain voice!
-11. Act like your video is frozen and buffering for 10 seconds!
-12. Deliver a 15-second breaking news report on your messy desk!
-13. Give a dramatic acceptance speech thanking your laptop charger!
-14. Imitate an automated customer care voice bot glitching out!
-15. Explain your job in 15 seconds like you're talking to a 5-year-old!
-
-STRICT RULES:
-- Output exactly ONE dare.
-- Keep it to 1 short sentence (under 14 words).
-- Zero dancing. Zero physical room hazards.
+POPULAR EXAMPLES:
+1. Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!
+2. Give high-energy Hindi IPL commentary on someone in this call sipping tea or water!
+3. Do 3 dramatic Ekta Kapoor serial gasps shouting "Mera build pass ho gaya!" on webcam!
+4. Apologize emotionally to your laptop charger for 100% battery overworking in 15 seconds!
+5. Pitch an absurd startup called "Wi-Fi Chai" to the team in 15 seconds like Shark Tank!
+6. Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!
+7. Imitate your project manager saying "Just a quick 5-minute sync" on mic!
+8. Do your best dramatic Bollywood villain laugh loudly on webcam for 10 seconds!
+9. Deliver a 15-second breaking news bulletin: "Local developer survives Monday morning standup!"
+10. Recreate your funniest reaction emoji on webcam and freeze completely for 10 seconds!
+11. Give an emotional award acceptance speech thanking Ctrl+Z and StackOverflow for your career!
+12. Speak for the next 15 seconds in an enthusiastic cartoon character voice!
+13. Show the closest weird object on your desk and explain why it helps you code!
+14. Act like your video is completely buffering with your mouth wide open for 10 seconds!
 
 Return JSON only:
 {
   "category": "Dare",
-  "prompt": "Sell your coffee mug in Naaptol TV host style in 15 seconds!"
+  "prompt": "Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!"
 }
 """
 
 POPULAR_BUILTIN_TRUTHS = [
-    "What's the funniest lie you've told when joining a meeting late?",
-    "Have you ever spoken on mute for more than a minute?",
-    "What is the weirdest tab currently open in your browser?",
-    "Have you ever nodded in a meeting without understanding a single word?",
-    "Have you ever blamed a slow internet connection when you weren't ready?",
-    "What's the most embarrassing message you sent to the wrong chat?",
-    "What is one thing you pretend to know at work but always Google?",
-    "Have you ever attended a virtual meeting in formal shirt and pajamas?",
-    "What is your biggest pet peeve during online team calls?",
-    "Have you ever typed 'Haha' in chat with a completely straight face?",
-    "If you could mute one colleague in real life, who would it be?",
-    "What's the longest you've gone without restarting your laptop?",
-    "Have you ever joined a meeting and secretly hoped it got canceled?",
-    "What's the strangest snack you've eaten during a serious client call?",
-    "Who on this call would be the first to panic if the Wi-Fi went down?",
-    "Have you ever spoken to your computer screen out of pure frustration?",
-    "What's the funniest excuse you've used to decline a Friday evening call?",
+    "Have you ever claimed your mic is broken just to dodge giving an update?",
+    "What's the funniest lie you gave when you overslept a morning standup?",
+    "Have you ever attended a virtual call from bed while pretending you're at your desk?",
+    "Have you ever said 'Can you hear me?' solely to buy 15 seconds to think?",
+    "What is one buzzword you constantly use without knowing what it actually means?",
+    "Have you ever nodded intensely on camera while having zero clue what was discussed?",
+    "Have you ever browsed Swiggy or Zomato during a serious project retrospective?",
+    "What is the longest you've stared at a bug before realizing you didn't save the file?",
+    "Have you ever said 'Let's take this offline' just because you had no answer?",
+    "Who in this meeting has the most believable fake smile during stressful calls?",
+    "Have you ever pushed code on Friday evening and immediately shut down your laptop?",
+    "What's the most embarrassing message you accidentally sent to the wrong project channel?",
+    "Have you ever checked your phone, seen missed calls from your lead, and panicked?",
+    "Have you ever typed 'Haha' in chat with a completely expressionless face?",
+    "Have you ever opened a meeting link and secretly prayed nobody else joined?",
+    "What is your biggest pet peeve during online team video calls?",
+    "Have you ever pretended your internet lagged to get out of an awkward question?",
+    "What's the strangest snack you've eaten while speaking on an unmuted team call?",
 ]
 
 POPULAR_BUILTIN_DARES = [
-    "Sell your coffee mug in Naaptol TV host style in 15 seconds!",
-    "Speak in an enthusiastic cartoon voice for the next 15 seconds!",
-    "Do your best evil movie villain laugh loudly on webcam!",
-    "Show the weirdest object on your desk to your camera!",
-    "Give a 15-second IPL cricket commentary on someone typing!",
-    "Say 'Mera code crash ho gaya' with 3 dramatic TV serial gasps!",
-    "Pitch an imaginary Bluetooth Samosa to the team in 15 seconds!",
-    "Recreate your most-used emoji using only your face on camera!",
-    "Speak for 15 seconds without blinking at the webcam!",
-    "Sing 'Twinkle Twinkle' in a deep Hollywood movie villain voice!",
-    "Act like your video is frozen and buffering for 10 seconds!",
-    "Deliver a 15-second breaking news report on your messy desk!",
-    "Give a dramatic acceptance speech thanking your laptop charger!",
-    "Imitate an automated customer care voice bot glitching out!",
-    "Explain your job in 15 seconds as if explaining to a 5-year-old!",
-    "Pretend you're a robot attending its very first office meeting!",
+    "Pitch your office water bottle like an urgent 2 AM Naaptol TV host in 15 seconds!",
+    "Give high-energy Hindi IPL commentary on someone in this call sipping tea or water!",
+    "Do 3 dramatic Ekta Kapoor serial gasps shouting 'Mera build pass ho gaya!' on webcam!",
+    "Apologize emotionally to your laptop charger for 100% battery overworking in 15 seconds!",
+    "Pitch an absurd startup called 'Wi-Fi Chai' to the team in 15 seconds like Shark Tank!",
+    "Hold an intense, unblinking dramatic staring contest with your webcam for 12 seconds!",
+    "Imitate your project manager saying 'Just a quick 5-minute sync' on mic!",
+    "Do your best dramatic Bollywood villain laugh loudly on webcam for 10 seconds!",
+    "Deliver a 15-second breaking news bulletin: 'Local developer survives Monday morning standup!'",
+    "Recreate your funniest reaction emoji on webcam and freeze completely for 10 seconds!",
+    "Give an emotional award acceptance speech thanking Ctrl+Z and StackOverflow for your career!",
+    "Speak for the next 15 seconds in an enthusiastic cartoon character voice!",
+    "Show the closest weird object on your desk and explain why it helps you code!",
+    "Act like your video is completely buffering with your mouth wide open for 10 seconds!",
+    "Imitate an automated customer care IVR robot voice glitching out on mic!",
+    "Explain your job in 15 seconds as if you are explaining to a 5-year-old child!",
 ]
 
 

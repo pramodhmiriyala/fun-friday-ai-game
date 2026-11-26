@@ -3,6 +3,8 @@ AI secretly selects a movie from the chosen language category, provides clues (s
 answers participant questions with witty office-party banter, and judges guesses.
 Equipped with dynamic era/genre rotation and server-side memory to strictly prevent movie repetition.
 """
+import json
+import os
 import random
 import time
 import uuid
@@ -22,18 +24,44 @@ CATEGORIES = {
     "Pan-Indian",
 }
 DEFAULT_MAX_QUESTIONS = 5
-SESSION_TTL = 3600  # 1 hour
+SESSION_TTL = 7200  # 2 hours
 
+SESSIONS_FILE = os.path.join(os.path.dirname(__file__), ".movie_sessions.json")
 _sessions: dict[str, dict] = {}
 _recently_played_movies: list[str] = []
 MAX_HISTORY = 80
 
 
+def _load_sessions() -> None:
+    global _sessions
+    if os.path.exists(SESSIONS_FILE):
+        try:
+            with open(SESSIONS_FILE, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    _sessions.update(loaded)
+        except Exception:
+            pass
+
+
+def _save_sessions() -> None:
+    try:
+        with open(SESSIONS_FILE, "w", encoding="utf-8") as f:
+            json.dump(_sessions, f)
+    except Exception:
+        pass
+
+
+_load_sessions()
+
+
 def _cleanup_sessions() -> None:
     now = time.time()
-    expired = [sid for sid, s in _sessions.items() if now - s["created_at"] > SESSION_TTL]
+    expired = [sid for sid, s in _sessions.items() if now - s.get("created_at", 0) > SESSION_TTL]
     for sid in expired:
         _sessions.pop(sid, None)
+    if expired:
+        _save_sessions()
 
 
 START_SYSTEM = """You are a witty, dynamic AI game host running 'AI – Guess the Movie' for an Indian IT corporate Fun Connect event.
@@ -154,6 +182,7 @@ def start_round(category: str, exclude: list[str], max_questions: int = DEFAULT_
         "solved": False,
         "created_at": time.time(),
     }
+    _save_sessions()
 
     return {
         "session_id": session_id,
@@ -236,7 +265,17 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
     _cleanup_sessions()
     session = _sessions.get(session_id)
     if not session:
-        raise ValueError("Round session expired or not found. Start a new round!")
+        _load_sessions()
+        session = _sessions.get(session_id)
+    if not session:
+        return {
+            "is_correct": False,
+            "is_guess": False,
+            "kind": "reply",
+            "reply": "🎬 This round session has expired. Click 'Start Round' above or select a language to begin a fresh round!",
+            "questions_left": 0,
+            "expired": True,
+        }
 
     if session["solved"]:
         return {
@@ -330,6 +369,7 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
 
     if is_correct:
         session["solved"] = True
+        _save_sessions()
         return {
             "is_correct": True,
             "is_guess": True,
@@ -345,6 +385,7 @@ def interact(session_id: str, message: str = "", mode: str = "chat") -> dict:
 
     if not out_of_questions:
         session["questions_left"] = max(0, session["questions_left"] - 1)
+    _save_sessions()
 
     return {
         "is_correct": False,
@@ -360,9 +401,13 @@ def reveal(session_id: str) -> dict:
     _cleanup_sessions()
     session = _sessions.get(session_id)
     if not session:
-        raise ValueError("Round session expired or not found.")
+        _load_sessions()
+        session = _sessions.get(session_id)
+    if not session:
+        raise ValueError("Round session expired. Please start a new round.")
 
     session["solved"] = True
+    _save_sessions()
     return {
         "movie": {
             "title": session["title"],

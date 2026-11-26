@@ -88,14 +88,18 @@ interface WheelSlice {
           <!-- Card Output Screen -->
           @let item = cur()!;
           @if (item.type === 'pass') {
-            <!-- Simple Pass Screen: Skips question with zero penalty -->
+            <!-- Lucky Pass Screen: Grants free bonus points! -->
             <div class="card-wrap text-center pop-in">
-              <div class="stage-ic mb-2">🛡️</div>
-              <h2 class="display grad-text">PASS!</h2>
-              <p class="fs-4 text-white mb-4">Question skipped. Zero penalty!</p>
+              <div class="stage-ic mb-2">🎁</div>
+              <h2 class="display grad-text">LUCKY PASS!</h2>
+              <div class="pass-bonus-badge my-3">⭐ FREE +5 BONUS POINTS ⭐</div>
+              <p class="fs-5 text-white mb-4">
+                Lady luck smiled on <b class="text-white">{{ teams.activeTeam()?.name ?? 'your team' }}</b>!
+                <br><span class="muted fs-6">Turn safely skipped + <b>5 free points</b> automatically added to your score!</span>
+              </p>
               <div class="actions">
-                <button class="btn-neon btn-lg-x pulse" (click)="t.next()" id="btn-tod-next">
-                  ➡ Next Player
+                <button class="btn-neon btn-lg-x pulse" (click)="nextPlayer()" id="btn-tod-next">
+                  🎡 Spin for Next Player
                 </button>
               </div>
             </div>
@@ -167,6 +171,7 @@ interface WheelSlice {
     }
     .type-pill.dare { background: rgba(244,63,94,.2); border-color: #f43f5e; color: #fda4af; }
     .type-pill.pass { background: rgba(16,185,129,.2); border-color: #10b981; color: #6ee7b7; }
+    .pass-bonus-badge { display: inline-block; padding: .5rem 1.4rem; border-radius: 999px; background: linear-gradient(135deg, rgba(16,185,129,.3), rgba(250,204,21,.3)); border: 1.5px solid #10b981; color: #a7f3d0; font-weight: 900; font-size: 1.15rem; letter-spacing: .08em; text-shadow: 0 0 12px rgba(16,185,129,.6); box-shadow: 0 0 30px rgba(16,185,129,.35); }
 
     .prompt-text { font-size: clamp(1.8rem, 4.2vw, 2.8rem); font-weight: 900; line-height: 1.35; max-width: 820px; margin: 0 auto 1.5rem; color: #fff; }
     .actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
@@ -191,14 +196,14 @@ export class TruthOrDareComponent {
   readonly rotation = signal(0);
   readonly pointsAwarded = signal(false);
 
-  // 6 Alternating slices: Truth, Dare, Pass
+  // 6 Alternating slices: Truth, Dare, Pass (+5 pts)
   readonly slices: WheelSlice[] = [
-    { label: 'TRUTH', icon: '😇', type: 'truth', color: '#0284c7', textCol: '#e0f2fe' },
-    { label: 'DARE',  icon: '🔥', type: 'dare',  color: '#e11d48', textCol: '#ffe4e6' },
-    { label: 'PASS',  icon: '🛡️', type: 'pass',  color: '#059669', textCol: '#d1fae5' },
-    { label: 'TRUTH', icon: '😇', type: 'truth', color: '#0369a1', textCol: '#e0f2fe' },
-    { label: 'DARE',  icon: '🔥', type: 'dare',  color: '#be123c', textCol: '#ffe4e6' },
-    { label: 'PASS',  icon: '🛡️', type: 'pass',  color: '#047857', textCol: '#d1fae5' },
+    { label: 'TRUTH',    icon: '😇', type: 'truth', color: '#0284c7', textCol: '#e0f2fe' },
+    { label: 'DARE',     icon: '🔥', type: 'dare',  color: '#e11d48', textCol: '#ffe4e6' },
+    { label: 'PASS +5',  icon: '🎁', type: 'pass',  color: '#059669', textCol: '#d1fae5' },
+    { label: 'TRUTH',    icon: '😇', type: 'truth', color: '#0369a1', textCol: '#e0f2fe' },
+    { label: 'DARE',     icon: '🔥', type: 'dare',  color: '#be123c', textCol: '#ffe4e6' },
+    { label: 'PASS +5',  icon: '🎁', type: 'pass',  color: '#047857', textCol: '#d1fae5' },
   ];
 
   slicePath(i: number): string {
@@ -253,6 +258,8 @@ export class TruthOrDareComponent {
       const chosen = this.slices[targetSlice];
       if (chosen.type === 'pass') {
         this.t.pass();
+        this.scoring.award(this.teams.activeTeamId(), 5, 'tod', 'Lucky Pass Free Bonus (+5 pts)');
+        this.confetti.burst(0.5, 0.45, 140);
       } else {
         this.t.play(chosen.type);
       }

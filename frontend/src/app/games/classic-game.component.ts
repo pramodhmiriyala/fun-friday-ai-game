@@ -91,42 +91,6 @@ import { HostAuthService } from '../services/host-auth.service';
           </div>
         }
 
-        <!-- ═══════════ PICTURE PUZZLE ═══════════ -->
-        @case ('puzzle') {
-          @let p = c.state().puzzle;
-          <div class="row g-4">
-            <div class="col-12 col-lg-8">
-              <div class="stage glass" [class.live]="p.phase === 'live'">
-                @if (p.phase === 'idle') {
-                  <div class="text-center"><div class="ic">🧩</div><h2 class="display">Picture Puzzle</h2><p class="muted">A tile peels off every 4 seconds. Guess early for more points!</p>
-                    <button class="btn-neon btn-lg-x pulse" (click)="c.puzzleStart()" id="btn-puzzle-start">▶ START</button></div>
-                } @else {
-                  <div class="text-center w-100">
-                    <div class="pic">
-                      <div class="emo">{{ c.puzzle().emoji }}</div>
-                      <div class="tiles">
-                        @for (i of nine; track i) { <div class="tile" [class.gone]="p.open.includes(i) || p.phase === 'revealed'"></div> }
-                      </div>
-                    </div>
-                    @if (p.showHint && p.phase === 'live') { <div class="hint pop-in">💡 {{ c.puzzle().hint }}</div> }
-                    @if (p.phase === 'revealed') { <div class="a pop-in display">{{ c.puzzle().answer }}</div> }
-                    <div class="mt-2 muted">Prize now: <b class="text-white">{{ c.puzzlePrize() }} pts</b></div>
-                  </div>
-                }
-              </div>
-              <div class="actions">
-                @if (p.phase === 'live') {
-                  <button class="btn-neon btn-green" (click)="c.puzzleSolve()" id="btn-puzzle-solve">✅ Team solved it</button>
-                  <button class="btn-neon btn-gold" (click)="c.puzzleHint()" [disabled]="p.showHint" id="btn-puzzle-hint">💡 Hint (−2)</button>
-                  <button class="btn-neon btn-cyan" (click)="c.puzzleOpenTile()" id="btn-puzzle-tile">🔓 Open tile</button>
-                  <button class="btn-neon btn-pink" (click)="c.puzzleReveal()" id="btn-puzzle-reveal">{{ auth.isHost() ? '👁 Reveal' : '🔒 Reveal (host)' }}</button>
-                }
-                @if (p.phase === 'revealed') { <button class="btn-neon btn-lg-x" (click)="c.puzzleNext()" id="btn-puzzle-next">➡ Next puzzle</button> }
-              </div>
-            </div>
-          </div>
-        }
-
         <!-- ═══════════ WHO AM I? ═══════════ -->
         @case ('person') {
           @let pr = c.state().person;

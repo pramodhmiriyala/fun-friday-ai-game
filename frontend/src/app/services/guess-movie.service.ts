@@ -144,6 +144,14 @@ export class GuessMovieService {
 
     try {
       const res = await this.api.guessMovieInteract(s.sessionId, text, 'chat');
+      if ((res as any).expired) {
+        this.state.update(st => ({
+          ...st,
+          phase: 'idle',
+          messages: [...st.messages, { role: 'ai', kind: 'reply', label: '🎬 Movie Host', text: res.reply }],
+        }));
+        return;
+      }
       if (res.is_correct && res.movie) {
         const winnerId = this.team.activeTeamId();
         this.scoring.award(winnerId, this.prize(), 'guess', `Guessed "${res.movie.title}"`);
@@ -156,18 +164,23 @@ export class GuessMovieService {
           movie: res.movie ?? null,
           winner: winnerId,
           used: [...st.used, res.movie!.title].slice(-60),
-          messages: [...st.messages, { role: 'ai', kind: 'win', label: '🤖 AI Host', text: res.reply }],
+          messages: [...st.messages, { role: 'ai', kind: 'win', label: '🎬 Movie Host', text: res.reply }],
         }));
       } else {
         if (res.is_guess) this.sound.wrong();
         this.state.update(st => ({
           ...st,
           questionsLeft: res.questions_left,
-          messages: [...st.messages, { role: 'ai', kind: 'reply', label: '🤖 AI Host', text: res.reply }],
+          messages: [...st.messages, { role: 'ai', kind: 'reply', label: '🎬 Movie Host', text: res.reply }],
         }));
       }
     } catch (e) {
-      this.error.set((e as Error).message);
+      const errMsg = (e as Error).message || 'Connection glitch. Please try again.';
+      this.error.set(errMsg);
+      this.state.update(st => ({
+        ...st,
+        messages: [...st.messages, { role: 'ai', kind: 'reply', label: '🎬 Movie Host', text: `⚠️ ${errMsg} (Click 'Start Round' if session expired)` }],
+      }));
     } finally {
       this.thinking.set(false);
     }
