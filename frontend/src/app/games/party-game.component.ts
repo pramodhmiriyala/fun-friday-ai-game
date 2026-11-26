@@ -1,5 +1,6 @@
 import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { persisted } from '../core/store';
 import { TeamPickerComponent } from '../components/team-picker.component';
 import { TimerComponent } from '../components/timer.component';
 import { AiApiService, PanicTask } from '../services/ai-api.service';
@@ -172,7 +173,7 @@ export class PartyGameComponent implements OnInit {
   readonly timer;
 
   private panicQ: PanicTask[] = [];
-  private usedPanic: string[] = [];
+  readonly usedPanic = persisted<string[]>('used_panic', []);
 
   constructor() {
     this.timer = inject(TimerService).create('panic-defuse', PANIC_SECONDS);
@@ -187,7 +188,7 @@ export class PartyGameComponent implements OnInit {
 
   ngOnInit() {
     if (this.panicQ.length === 0) {
-      this.refill(this.panicQ, async () => (await this.api.panicTasks(this.usedPanic)).tasks).then(q => this.panicQ = q);
+      this.refill(this.panicQ, async () => (await this.api.panicTasks(this.usedPanic())).tasks).then(q => this.panicQ = q);
     }
   }
 
@@ -223,17 +224,17 @@ export class PartyGameComponent implements OnInit {
   async revealTwister() {
     this.repsDone.set(0);
     this.timer.reset(PANIC_SECONDS);
-    this.panicQ = await this.refill(this.panicQ, async () => (await this.api.panicTasks(this.usedPanic)).tasks);
+    this.panicQ = await this.refill(this.panicQ, async () => (await this.api.panicTasks(this.usedPanic())).tasks);
     const t = this.panicQ.shift();
     if (!t) return;
-    this.usedPanic = [...this.usedPanic, t.task].slice(-30);
+    this.usedPanic.update(cur => [...cur, t.task].slice(-50));
     this.panicCur.set(t);
     this.phase.set('ready');
     this.sound.whoosh();
 
     // Pre-fetch in background so next twister is instant
     if (this.panicQ.length <= 2) {
-      this.api.panicTasks(this.usedPanic).then(res => {
+      this.api.panicTasks(this.usedPanic()).then(res => {
         this.panicQ = [...this.panicQ, ...res.tasks];
       }).catch(() => {});
     }

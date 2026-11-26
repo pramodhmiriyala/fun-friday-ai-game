@@ -17,7 +17,18 @@ const DEFAULT_NAMES = ['Team Alpha', 'Team Beta', 'Team Gamma', 'Team Delta'];
 export class TeamService {
   readonly teams = persisted<Team[]>('teams', []);
   readonly activeTeamId = persisted<string | null>('activeTeam', null);
-  readonly activeTeam = computed(() => this.teams().find((t) => t.id === this.activeTeamId()) ?? null);
+  readonly activeTeam = computed(() => {
+    const list = this.teams();
+    if (!list.length) return null;
+    return list.find((t) => t.id === this.activeTeamId()) ?? list[0];
+  });
+
+  constructor() {
+    const list = this.teams();
+    if (list.length > 0 && (!this.activeTeamId() || !list.some(t => t.id === this.activeTeamId()))) {
+      this.activeTeamId.set(list[0].id);
+    }
+  }
 
   add(name: string): string | null {
     const n = name.trim().slice(0, 30);

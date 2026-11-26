@@ -117,8 +117,10 @@ export class ClassicGamesService {
     this.personLoading.set(true);
     this.personError.set(null);
     try {
-      const r = await this.api.personCards(this.state().person.usedNames);
-      this.patch('person', { people: r.people, pos: 0, clues: 1, revealed: false });
+      const allCurrent = this.state().person.people.map(x => x.name).filter(Boolean);
+      const combinedExclude = Array.from(new Set([...this.state().person.usedNames, ...allCurrent])).slice(-50);
+      const r = await this.api.personCards(combinedExclude);
+      this.patch('person', { people: r.people, pos: 0, clues: 1, revealed: false, usedNames: combinedExclude });
     } catch (e) { this.personError.set((e as Error).message); }
     finally { this.personLoading.set(false); }
   }
@@ -245,11 +247,12 @@ export class ClassicGamesService {
   personNext() {
     const p = this.state().person;
     const nextPos = p.pos + 1;
+    const allCurrent = p.people.map(x => x.name).filter(Boolean);
+    const updatedUsed = Array.from(new Set([...p.usedNames, ...allCurrent])).slice(-50);
+
     // Pre-fetch next team's riddles while current team is on Question 4 or 5:
     if (nextPos >= 3 && this.nextTeamCards.length === 0) {
-      const allCurrent = p.people.map(x => x.name).filter(Boolean);
-      const combinedExclude = Array.from(new Set([...p.usedNames, ...allCurrent])).slice(-40);
-      this.api.personCards(combinedExclude).then(res => {
+      this.api.personCards(updatedUsed).then(res => {
         this.nextTeamCards = res.people;
       }).catch(() => {});
     }
@@ -259,12 +262,13 @@ export class ClassicGamesService {
       if (this.nextTeamCards.length > 0) {
         const fresh = this.nextTeamCards;
         this.nextTeamCards = [];
-        this.patch('person', { people: fresh, pos: 0, clues: 1, revealed: false });
+        this.patch('person', { people: fresh, pos: 0, clues: 1, revealed: false, usedNames: updatedUsed });
       } else {
+        this.patch('person', { usedNames: updatedUsed });
         this.fetchPersonCards();
       }
     } else {
-      this.patch('person', { pos: nextPos, clues: 1, revealed: false });
+      this.patch('person', { pos: nextPos, clues: 1, revealed: false, usedNames: updatedUsed });
     }
   }
 }

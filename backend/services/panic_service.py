@@ -117,4 +117,8 @@ def generate_tasks(count: int, exclude: list[str]) -> tuple[list[dict], str]:
         available = FAMOUS_ENGLISH_TWISTERS
     random.shuffle(available)
     picked = available[:count]
+    for p in picked:
+        _recent_tasks.append(p["task"])
+    if len(_recent_tasks) > MAX_HISTORY:
+        _recent_tasks = _recent_tasks[-MAX_HISTORY:]
     return picked, "builtin"

@@ -4,6 +4,8 @@ import { TeamPickerComponent } from '../components/team-picker.component';
 import { TruthOrDareService } from '../services/truth-or-dare.service';
 import { TeamService } from '../services/team.service';
 import { SoundService } from '../services/sound.service';
+import { ScoringService } from '../services/scoring.service';
+import { ConfettiService } from '../services/confetti.service';
 
 interface WheelSlice {
   label: string;
@@ -113,10 +115,13 @@ interface WheelSlice {
               </div>
 
               <div class="actions">
-                <button class="btn-neon btn-green btn-lg-x" (click)="t.applaud()" id="btn-tod-applaud">
-                  👏 Applaud & Celebrate!
+                <button class="btn-neon btn-green btn-lg-x pulse" (click)="awardPoints(10)" [disabled]="pointsAwarded()" id="btn-tod-award">
+                  {{ pointsAwarded() ? '✓ +10 pts Awarded!' : '✅ Completed! (+10 pts)' }}
                 </button>
-                <button class="btn-neon btn-lg-x" (click)="t.next()" id="btn-tod-next">
+                <button class="btn-ghost" (click)="t.applaud()" id="btn-tod-applaud">
+                  👏 Applaud
+                </button>
+                <button class="btn-neon btn-lg-x" (click)="nextPlayer()" id="btn-tod-next">
                   🎡 Next Player
                 </button>
               </div>
@@ -176,12 +181,15 @@ export class TruthOrDareComponent {
   readonly t = inject(TruthOrDareService);
   readonly teams = inject(TeamService);
   private sound = inject(SoundService);
+  private scoring = inject(ScoringService);
+  private confetti = inject(ConfettiService);
 
   @Input() embedded = false;
   readonly cur = () => this.t.state().current;
 
   readonly spinning = signal(false);
   readonly rotation = signal(0);
+  readonly pointsAwarded = signal(false);
 
   // 6 Alternating slices: Truth, Dare, Pass
   readonly slices: WheelSlice[] = [
@@ -241,6 +249,7 @@ export class TruthOrDareComponent {
     // After 3.5s spin finishes, trigger outcome
     setTimeout(() => {
       this.spinning.set(false);
+      this.pointsAwarded.set(false);
       const chosen = this.slices[targetSlice];
       if (chosen.type === 'pass') {
         this.t.pass();
@@ -248,5 +257,19 @@ export class TruthOrDareComponent {
         this.t.play(chosen.type);
       }
     }, 3500);
+  }
+
+  awardPoints(pts = 10) {
+    if (this.pointsAwarded()) return;
+    const task = this.cur()?.prompt ?? 'Truth or Dare';
+    this.scoring.award(this.teams.activeTeamId(), pts, 'tod', task);
+    this.sound.correct();
+    this.confetti.burst(0.5, 0.45, 120);
+    this.pointsAwarded.set(true);
+  }
+
+  nextPlayer() {
+    this.pointsAwarded.set(false);
+    this.t.next();
   }
 }

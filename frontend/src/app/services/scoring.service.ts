@@ -21,7 +21,7 @@ export interface Standing {
 export const GAME_LABELS: Record<string, string> = {
   describe: 'Describe It', director: 'Movie Director', guess: 'Guess the Movie',
   rapid: 'Rapid Fire', voting: 'Team Voting', puzzle: 'Picture Puzzle', person: 'Who Am I?', panic: 'Panic Defuse', nolaugh: 'Do Not Laugh',
-  wheel: 'Bonus Wheel', manual: 'Host Adjust',
+  wheel: 'Bonus Wheel', tod: 'Truth or Dare', manual: 'Host Adjust',
 };
 
 @Injectable({ providedIn: 'root' })
@@ -53,10 +53,11 @@ export class ScoringService {
   total(teamId: string) { return this.standings().find((s) => s.teamId === teamId)?.total ?? 0; }
 
   award(teamId: string | null | undefined, points: number, game: string, reason = ''): boolean {
-    if (!teamId || !this.teams.get(teamId) || !Number.isFinite(points) || points === 0) return false;
+    const targetId = teamId || this.teams.activeTeam()?.id;
+    if (!targetId || !this.teams.get(targetId) || !Number.isFinite(points) || points === 0) return false;
     const p = Math.max(-1000, Math.min(1000, Math.round(points)));
-    this.entries.update((l) => [...l, { id: uid(), teamId, game, points: p, reason, ts: Date.now() }].slice(-500));
-    this.lastAward.set({ teamId, points: p, ts: Date.now() });
+    this.entries.update((l) => [...l, { id: uid(), teamId: targetId, game, points: p, reason, ts: Date.now() }].slice(-500));
+    this.lastAward.set({ teamId: targetId, points: p, ts: Date.now() });
     return true;
   }
 
