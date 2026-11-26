@@ -34,7 +34,7 @@ import { SoundService } from '../services/sound.service';
           <div class="marquee-badge">🎬 PREMIERE SHOWCASE</div>
           <div class="welcome-txt">WELCOME TO</div>
           <h1 class="marquee-title grad-gold">FUN CONNECT</h1>
-          <p class="marquee-sub">✦ Interactive Team Arena · Connect, Play & Win Together ✦</p>
+          <p class="marquee-sub">✦ Interactive Team Arena · Forget about the deadlines, it's game time! 🚀 ✦</p>
 
           <button class="btn-cinema pulse" (click)="openCurtains()" id="btn-open-curtains">
             🍿 Open Curtains & Enter Arena ↵
@@ -61,7 +61,7 @@ import { SoundService } from '../services/sound.service';
       </h1>
       <p class="lead muted fade-in" style="animation-delay:.25s">
         5 engaging team challenges · Spinning wheel of fate · Live leaderboard — all on one big screen.<br>
-        <b class="text-white">Connect, play & win together — energized teamwork and unforgettable laughs!</b>
+        <b class="text-white">Forget about the deadlines, it's game time — energized teamwork and unforgettable laughs!</b>
       </p>
       <div class="cta fade-in" style="animation-delay:.4s">
         @if (teams.teams().length < 2) {
