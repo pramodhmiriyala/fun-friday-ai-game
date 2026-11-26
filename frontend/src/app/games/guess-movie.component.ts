@@ -13,7 +13,7 @@ import { HostAuthService } from '../services/host-auth.service';
     <section [class.page]="!embedded" class="wrap">
       @if (!embedded) {
         <a routerLink="/" class="back">← Arena</a><br>
-        <span class="badge-pill">🤖 AI Host · Interactive</span>
+        <span class="badge-pill">🎬 Cinema Host · Interactive</span>
         <h1 class="page-title grad-text">AI – Guess the Movie</h1>
       }
 
@@ -48,8 +48,8 @@ import { HostAuthService } from '../services/host-auth.service';
             <!-- IDLE -->
             @if (s().phase === 'idle') {
               <div class="idle-wrap text-center">
-                <div class="idle-ic">🤖</div>
-                <h2 class="display">AI is Your Game Host!</h2>
+                <div class="idle-ic">🎬</div>
+                <h2 class="display">Cinema Host is Ready!</h2>
                 <p class="muted mt-2">
                   Pick a language above (<b class="text-white">{{ s().category }}</b> selected).
                   AI secretly picks a movie, drops a clue, and answers up to <b>5 questions or extra clues</b> live!
@@ -58,7 +58,7 @@ import { HostAuthService } from '../services/host-auth.service';
                         (click)="g.startRound()"
                         [disabled]="g.loading()"
                         id="btn-guess-start">
-                  {{ g.loading() ? '🤖 AI is picking a movie…' : '🎬 Start Round (' + s().category + ')' }}
+                  {{ g.loading() ? '🎬 Picking a movie…' : '🎬 Start Round (' + s().category + ')' }}
                 </button>
               </div>
             }
@@ -87,7 +87,7 @@ import { HostAuthService } from '../services/host-auth.service';
                   }
                   @if (g.thinking()) {
                     <div class="msg ai typing">
-                      <div class="msg-lbl">🤖 AI Host</div>
+                      <div class="msg-lbl">🎬 Movie Host</div>
                       <div class="msg-txt">Thinking… 😏</div>
                     </div>
                   }
@@ -161,7 +161,7 @@ import { HostAuthService } from '../services/host-auth.service';
                       (click)="g.startRound()"
                       [disabled]="g.loading()"
                       id="btn-guess-next">
-                {{ g.loading() ? '🤖 Picking next movie…' : '➡ Next Round (' + s().category + ')' }}
+                {{ g.loading() ? '🎬 Picking next movie…' : '➡ Next Round (' + s().category + ')' }}
               </button>
             }
             <button class="btn-ghost" (click)="g.resetGame()" id="btn-guess-reset">↺ Reset</button>
@@ -183,12 +183,12 @@ import { HostAuthService } from '../services/host-auth.service';
           </div>
 
           <div class="glass glass-pad howto">
-            <div class="ht-title">🤖 How to Play</div>
+            <div class="ht-title">🎬 How to Play</div>
             <ol class="ht-list muted">
               <li>Pick a language: <b>Telugu, Tamil, Hindi, Kannada, Marathi, Bengali, Odia, English, etc.</b></li>
               <li>AI secretly picks a popular movie & reveals <b>Clue #1: The Story / Plot</b>!</li>
               <li>Try to guess the movie name from its plot!</li>
-              <li>Tap <b>Quick ask</b> for Hero/Heroine, Director, or famous dialogue in original language</li>
+              <li>Tap <b>Quick ask</b> for Hero/Heroine, Director, Release Year, or Genre & Theme</li>
               <li>Click <b>💡 Ask AI for Another Clue</b> for more hints!</li>
               <li>Guess early to win maximum points! 🏆</li>
             </ol>
@@ -278,7 +278,7 @@ export class GuessMovieComponent {
     { icon: '🎭', label: 'Hero / Heroine', prompt: 'Who is the hero or heroine in this movie?' },
     { icon: '🎬', label: 'Director / Crew', prompt: 'Who directed this movie or who is a key crew member?' },
     { icon: '📅', label: 'Release Year',    prompt: 'Which year or era was this movie released in?' },
-    { icon: '🎵', label: 'Song / Dialogue', prompt: 'Give a famous song line or iconic dialogue from this movie in its original language (without saying the movie title).' },
+    { icon: '🍿', label: 'Genre & Theme',   prompt: 'What is the genre, setting, and core theme of this movie?' },
   ];
   @Input() embedded = false;
   inputText = '';
