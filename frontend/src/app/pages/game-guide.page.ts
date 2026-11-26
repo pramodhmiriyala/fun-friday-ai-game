@@ -45,18 +45,18 @@ interface GameRule {
       </header>
 
       <!-- Quick Summary Card -->
-      <section class="glass glass-pad summary-banner mb-5">
-        <div class="row align-items-center g-3">
-          <div class="col-12 col-md-8">
+      <section class="glass glass-pad summary-banner mb-4">
+        <div class="summary-flex">
+          <div class="summary-info">
             <h3 class="h4 mb-1 text-white">🏆 Quick Host & Team Overview</h3>
             <p class="muted mb-0">
               Teams take turns playing rounds. Scores update in real time on the <b>Leaderboard</b>. 
               The team with the most points at the end wins the Grand Championship!
             </p>
           </div>
-          <div class="col-12 col-md-4 text-md-end">
-            <a routerLink="/wheel" class="btn-neon btn-pink me-2">🎡 Spin Wheel</a>
-            <a routerLink="/" class="btn-neon">🚀 Play Arena</a>
+          <div class="summary-actions">
+            <a routerLink="/wheel" class="btn-neon btn-pink" id="btn-guide-wheel">🎡 Spin Wheel</a>
+            <a routerLink="/" class="btn-neon" id="btn-guide-arena">🚀 Play Arena</a>
           </div>
         </div>
       </section>
@@ -156,11 +156,25 @@ interface GameRule {
                 <div class="col-12 col-lg-7">
                   <div class="sub-block h-100">
                     <h4 class="sub-title"><span class="sub-ic">🎯</span> 3 Wheel Modes</h4>
-                    <ul class="wheel-modes-list">
+                    <ul class="wheel-modes-list mb-3">
                       <li><b>👥 Pick a Team:</b> Randomly spins across all registered active teams to decide who takes the stage.</li>
                       <li><b>🎮 Pick a Game:</b> Randomly selects one of the 5 arena games when teams can't decide what to play next.</li>
-                      <li><b>🎁 Bonus Challenge:</b> Lands on instant chair/webcam mini-dares (e.g. Shark Tank pitch, Bollywood laugh, Emoji face) for bonus leaderboard points!</li>
+                      <li><b>🎁 Bonus Challenge:</b> Lands on instant chair/webcam mini-dares for instant leaderboard points!</li>
                     </ul>
+
+                    <h4 class="sub-title mt-4"><span class="sub-ic">😂</span> Desk & Webcam Bonus Challenges</h4>
+                    <p class="muted text-sm mb-2">100% sitting in chair · Zero physical dancing · Pure corporate fun:</p>
+                    <div class="bonus-examples-grid">
+                      <div class="bonus-chip">📢 <b>Naaptol Pitch:</b> Urgent 2 AM TV pitch for any desk item (+15 pts)</div>
+                      <div class="bonus-chip">🏏 <b>IPL Commentary:</b> High-speed commentary on someone sipping water (+15 pts)</div>
+                      <div class="bonus-chip">🎭 <b>Dramatic Gasp:</b> "Mera code chal gaya!" Ekta Kapoor serial gasps (+10 pts)</div>
+                      <div class="bonus-chip">😈 <b>Bollywood Villain:</b> 10-second dramatic evil laugh on webcam (+10 pts)</div>
+                      <div class="bonus-chip">🔌 <b>Charger Apology:</b> Emotionally apologize to your 100% charger (+10 pts)</div>
+                      <div class="bonus-chip">💼 <b>Manager Sync:</b> Imitate "Just a quick 5-minute sync" (+10 pts)</div>
+                      <div class="bonus-chip">🦈 <b>Shark Tank:</b> 15s pitch for "Wi-Fi Chai" (+15 pts)</div>
+                      <div class="bonus-chip">🗿 <b>Webcam Freeze:</b> Buffering video call expression for 15s (+10 pts)</div>
+                      <div class="bonus-chip">🎁 <b>Lucky Jackpot:</b> Free instant team bonus (+20 pts)</div>
+                    </div>
                   </div>
                 </div>
 
@@ -170,15 +184,23 @@ interface GameRule {
                     <table class="scoring-table">
                       <tbody>
                         <tr>
-                          <td class="rule-label">Bonus Challenge Completed</td>
-                          <td class="points-val pos text-end">+10 to +20 pts</td>
+                          <td class="rule-label">Lucky Jackpot Bonus</td>
+                          <td class="points-val pos text-end">+20 pts</td>
+                        </tr>
+                        <tr>
+                          <td class="rule-label">15-Second Creative Pitch / Commentary</td>
+                          <td class="points-val pos text-end">+15 pts</td>
+                        </tr>
+                        <tr>
+                          <td class="rule-label">10-Second Webcam Facial / Voice Dare</td>
+                          <td class="points-val pos text-end">+10 pts</td>
                         </tr>
                         <tr>
                           <td class="rule-label">Bonus Challenge Skipped</td>
                           <td class="points-val text-end">0 pts</td>
                         </tr>
                         <tr>
-                          <td class="rule-label">Host Discretion Bonus</td>
+                          <td class="rule-label">Host Discretion / Effort Bonus</td>
                           <td class="points-val pos text-end">+5 to +15 pts</td>
                         </tr>
                       </tbody>
@@ -252,6 +274,46 @@ interface GameRule {
     }
     .summary-banner {
       border-left: 4px solid var(--purple);
+    }
+    .summary-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .summary-info {
+      flex: 1 1 500px;
+    }
+    .summary-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .summary-actions a,
+    .guide-footer a {
+      text-decoration: none !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+    }
+    .bonus-examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.6rem;
+    }
+    .bonus-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+      color: #e2e8f0;
+    }
+    .bonus-chip b {
+      color: #f472b6;
     }
     .rule-card {
       border-radius: 20px;
@@ -479,11 +541,11 @@ export class GameGuidePageComponent {
     {
       id: 'guess-movie',
       title: 'Guess the Movie (Plot & Dialogue)',
-      badge: 'Bollywood / Hollywood / Tollywood',
+      badge: 'Plot Clues',
       icon: '🎬',
       color: '#ec4899',
       tagline: 'AI summarizes the plot without naming it. Ask clues or guess the title!',
-      overview: 'The AI host generates a witty, spoiler-free plot summary of a famous Pan-Indian or Global blockbuster. Ask interactive clue questions or guess the title directly to bank maximum points!',
+      overview: 'The AI host generates a witty, spoiler-free plot summary of a famous movie. Ask interactive clue questions or guess the title directly to bank maximum points!',
       howToPlay: [
         'Read the AI plot summary on screen. You start each round with a 25-point bounty.',
         'Use the quick clue buttons (Hero/Heroine, Director, Release Year, Song/Dialogue) to get hints.',
