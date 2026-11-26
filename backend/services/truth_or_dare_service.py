@@ -1,186 +1,192 @@
-"""AI Truth or Dare (Office IT Edition) service.
-Trained on 15 Gold-Standard Truths and 15 Gold-Standard Dares.
-Simple, punchy, crystal-clear English for immediate understanding.
-Equipped with dynamic sub-theme rotation and server-side memory to strictly prevent repetition.
+"""AI Truth or Dare (Virtual Meeting Edition) service.
+Simple, punchy, 1-SENTENCE questions & challenges for online video calls (Teams/Zoom/Meet).
+100% sitting-at-desk/webcam/mic friendly. Zero dancing, zero walking across a room.
 """
 import random
 import time
 from .llm import chat_json, model_for, AIUnavailable
 
-# Server-side history across sessions so questions never repeat even across resets/reloads
+# Server-side history across sessions so questions never repeat
 _recent_truths: list[str] = []
 _recent_dares: list[str] = []
 MAX_HISTORY = 80
 
-TRUTH_SYSTEM = """You generate hilarious, super simple, and relatable 'TRUTH' questions for an Indian IT company party.
-Audience: Indian software engineers, testers, PMs, and managers, with senior leadership present.
+TRUTH_SYSTEM = """You generate hilarious, super short, 1-SENTENCE 'TRUTH' questions for an Indian IT company virtual meeting (Teams/Zoom).
+Audience: Software engineers, testers, and managers sitting at their desks on webcam.
 
-CRITICAL RULE – SIMPLICITY & IMMEDIATE UNDERSTANDING:
-- Use plain, everyday, conversational English that everyone understands in 2 seconds.
-- NO high-vocabulary, abstract, philosophical, or confusing questions.
-- Keep each question short (1-2 lines), direct, and instantly funny.
+CRITICAL LENGTH & FORMAT RULE:
+- EXACTLY ONE SHORT SENTENCE: Under 12 to 14 words!
+- NO long paragraphs or multi-clause questions.
+- Punchy, relatable, and instantly funny for a virtual team call.
 
-GOLD-STANDARD EXAMPLES (FOR STYLE AND HUMOUR CALIBRATION ONLY):
-1. Have you ever opened a meeting link and secretly hoped nobody would notice you were missing?
-2. What's the funniest lie you've told when someone asked, "Are you busy?"
-3. Have you ever nodded confidently in a meeting without understanding a single word?
-4. If your laptop could file a complaint against you, what would it say?
-5. Have you ever typed "Haha" in a chat without actually laughing?
-6. What's the weirdest thing you've searched on Google recently?
-7. Have you ever blamed slow internet when you simply weren't prepared?
-8. If you became invisible for one day at the office, what harmless mischief would you do?
-9. What's the most ridiculous reason you've stayed awake late at night?
-10. Have you ever forgotten why you opened a particular browser tab?
-11. If your team gave you a funny nickname based on your work habits, what would it be?
-12. What's the most embarrassing message you've accidentally sent to the wrong chat?
-13. Have you ever spoken to your computer as if it could understand you?
-14. If your daily office routine became a reality show, what would its title be?
-15. What's one thing you pretend to understand but secretly Google every time?
-
-CRITICAL ANTI-REPETITION RULE:
-- DO NOT copy or output any of the 15 examples above verbatim! They are for style demonstration only.
-- Every generated question MUST be a 100% brand-new, fresh, and original question.
+POPULAR EXAMPLES (CALIBRATION ONLY):
+1. What's the funniest lie you've told when joining a meeting late?
+2. Have you ever spoken on mute for more than a minute?
+3. What is the weirdest tab currently open in your browser?
+4. Have you ever nodded in a meeting having zero clue what was discussed?
+5. Have you ever blamed slow internet when you simply weren't prepared?
+6. What's the most embarrassing message you sent to the wrong chat?
+7. What is one thing you pretend to know at work but secretly Google?
+8. Have you ever attended a virtual meeting in formal top and pajama bottoms?
+9. What is your biggest pet peeve during online team calls?
+10. Have you ever typed "Haha" in chat with a completely straight face?
+11. If you could mute one colleague in real life, who would it be?
+12. What's the longest you've gone without restarting your work laptop?
+13. Have you ever opened a meeting link and secretly hoped it was canceled?
+14. What's the strangest snack you've eaten during a serious client call?
+15. Who on this call would be the first to panic if the Wi-Fi went down?
 
 STRICT RULES:
-- Generate exactly ONE question per request.
-- Answerable within 15–30 seconds.
-- No adult, sexual, violent, or abusive content. No alcohol or drugs.
-- Never ask about salary, relationships, religion, politics, caste, health, performance appraisals, or personal secrets.
-- Never target managers, HR, or individuals.
-- Keep it 100% professional and workplace-safe.
-- Avoid cinema questions (cinema is a separate game round).
+- Output exactly ONE question.
+- 100% professional and workplace-safe. No salary, politics, religion, or personal secrets.
 
 Return JSON only:
 {
   "category": "Truth",
-  "question": "What's the funniest excuse you've ever used to avoid a meeting?"
+  "question": "What's the funniest excuse you've used to avoid an unexpected meeting?"
 }
 """
 
-DARE_SYSTEM = """You generate hilarious, lighthearted, safe 'DARE' challenges for an Indian IT company party.
-Audience: Indian tech professionals with senior leadership present playing in teams.
+DARE_SYSTEM = """You generate hilarious, super short, 1-SENTENCE 'DARE' challenges for an Indian IT company virtual meeting (Teams/Zoom).
+Audience: Tech professionals sitting in their chairs in front of a laptop webcam and mic.
 
-CRITICAL WORKPLACE & TEAM RULES:
-- STRICT PROHIBITION ON DANCING: NEVER assign dancing, hook steps, or dance-related tasks! Teams are in an office setting; challenges must be verbal, roleplay, mime, or funny improv.
-- HILARIOUS IMPROV & SALES PITCH FOCUS: Feature funny teleshopping sales pitches (like Naaptol/Telemart TV host selling ordinary objects), Shark Tank pitches, dramatic serial reactions, sports commentaries, and movie trailer voiceovers!
-- Super clear, simple instructions doable on stage in 15–20 seconds.
-- NO complicated or embarrassing tasks. 100% workplace-safe and friendly.
+CRITICAL VIRTUAL MEETING RULES:
+- 100% DESK & WEBCAM ONLY: Players are on a virtual call!
+- STRICT PROHIBITION: NEVER ask anyone to dance, walk across a room, or leave their chair!
+- EXACTLY ONE SHORT SENTENCE: Under 12 to 14 words! NO long complex sentences.
+- Fun roleplay, Naaptol teleshopping pitch, facial expressions, funny voices, or showing desk items.
 
-GOLD-STANDARD EXAMPLES (FOR STYLE AND ACTION CALIBRATION ONLY):
-1. NAAPTOL SALES PITCH: Sell an empty coffee cup or an ordinary pen like an excited Naaptol TV host ("Bhaiyo aur behno, yeh aam cup nahi hai, abhi call karein aur paayein 90% discount!").
-2. SHARK TANK: Pitch a ridiculous invention (e.g., Bluetooth-powered samosa or anti-meeting sunglasses) to the other teams in 20 seconds.
-3. INDIAN SERIAL DRAMA: Say "Mera code production mein phat gaya!" with dramatic soap opera gasps and shock reactions.
-4. MOVIE TRAILER: Narrate a teammate's Monday morning arrival in a deep, booming Hollywood movie trailer voice.
-5. CRICKET COMMENTATOR: Speak for 15 seconds like an energetic IPL cricket commentator describing someone drinking tea or typing an email.
-6. LUXURY AD: Sell a single sticky note or staple pin as a ₹1,00,000 Swiss luxury masterpiece.
-7. ACT LIKE WI-FI: Act like a Wi-Fi router whose signal drops whenever someone walks past you.
-8. ROBOT STANDUP: Introduce your team in a rigid robotic voice as if attending an IT standup meeting in the year 3000.
-9. SILENT MIME: Silently act out "Client scheduled an emergency meeting on Friday at 5:00 PM" using only facial expressions.
-10. MOTIVATIONAL SPEECH: Deliver an emotional, motivational pep-talk to your laptop charger for working overtime.
-11. BREAKING NEWS: Deliver a breaking-news bulletin about someone stealing the last samosa from the office pantry.
-12. CUSTOMER CARE BOT: Act like an overly polite automated customer support IVR that malfunctions mid-sentence.
+POPULAR EXAMPLES (CALIBRATION ONLY):
+1. Sell your coffee mug in Naaptol TV host style in 15 seconds!
+2. Speak in an enthusiastic cartoon voice for the next 15 seconds!
+3. Do your best evil movie villain laugh loudly on webcam!
+4. Show the weirdest object on your desk to your camera!
+5. Give a 15-second IPL cricket commentary on someone typing!
+6. Say "Mera code crash ho gaya" with 3 dramatic TV serial gasps!
+7. Pitch an imaginary Bluetooth Samosa to the team in 15 seconds!
+8. Recreate your most-used emoji using only your face on camera!
+9. Speak for 15 seconds without blinking at the webcam!
+10. Sing "Twinkle Twinkle" in a deep Hollywood movie villain voice!
+11. Act like your video is frozen and buffering for 10 seconds!
+12. Deliver a 15-second breaking news report on your messy desk!
+13. Give a dramatic acceptance speech thanking your laptop charger!
+14. Imitate an automated customer care voice bot glitching out!
+15. Explain your job in 15 seconds like you're talking to a 5-year-old!
 
-CRITICAL ANTI-REPETITION RULE:
-- DO NOT copy or output any of the examples above verbatim! They are for style demonstration only.
-- Every generated dare MUST be a 100% brand-new, fresh, and original challenge.
-- NEVER generate dance tasks.
+STRICT RULES:
+- Output exactly ONE dare.
+- Keep it to 1 short sentence (under 14 words).
+- Zero dancing. Zero physical room hazards.
 
 Return JSON only:
 {
   "category": "Dare",
-  "prompt": "Sell an empty coffee cup in high-energy Naaptol TV style: 'Bhaiyo aur behno, abhi call karein!'"
+  "prompt": "Sell your coffee mug in Naaptol TV host style in 15 seconds!"
 }
 """
 
-TRUTH_THEMES = [
-    "virtual meetings, video glitches, or mic unmute accidents",
-    "funny lies told to sound busy or avoid an unexpected task",
-    "WFH funny habits, dress codes from the waist down, or odd snack timings",
-    "having 40+ browser tabs open and forgetting what you were doing",
-    "sending an accidental message or reaction to the wrong chat or group",
-    "pretending to understand an acronym, technical jargon, or client accent",
-    "the struggle of staying awake in post-lunch Friday meetings",
-    "funny developer habits, code comments, or 'it worked on my machine'",
-    "things you secretly Google that you feel you should already know by now",
-    "food cravings, cafeteria struggles, and tea/chai dependencies",
-    "Monday morning alarms and Friday 5:00 PM sprint to log off",
-    "harmless funny mischief you'd do if completely invisible at the office",
-    "pretending your internet dropped during a difficult question",
-    "what your laptop would complain about if it could speak to your manager",
-    "the most embarrassing autocorrect or typo in an email",
+POPULAR_BUILTIN_TRUTHS = [
+    "What's the funniest lie you've told when joining a meeting late?",
+    "Have you ever spoken on mute for more than a minute?",
+    "What is the weirdest tab currently open in your browser?",
+    "Have you ever nodded in a meeting without understanding a single word?",
+    "Have you ever blamed a slow internet connection when you weren't ready?",
+    "What's the most embarrassing message you sent to the wrong chat?",
+    "What is one thing you pretend to know at work but always Google?",
+    "Have you ever attended a virtual meeting in formal shirt and pajamas?",
+    "What is your biggest pet peeve during online team calls?",
+    "Have you ever typed 'Haha' in chat with a completely straight face?",
+    "If you could mute one colleague in real life, who would it be?",
+    "What's the longest you've gone without restarting your laptop?",
+    "Have you ever joined a meeting and secretly hoped it got canceled?",
+    "What's the strangest snack you've eaten during a serious client call?",
+    "Who on this call would be the first to panic if the Wi-Fi went down?",
+    "Have you ever spoken to your computer screen out of pure frustration?",
+    "What's the funniest excuse you've used to decline a Friday evening call?",
 ]
 
-DARE_THEMES = [
-    "NAAPTOL SALES PITCH: Energetically pitch an ordinary office item (stapler, empty cup, broken pen) like a teleshopping TV host ('Bhaiyo aur behno, abhi call karein!')",
-    "SHARK TANK PITCH: Deliver a hilarious 15-second pitch for a bizarre invention asking for ₹5 Crores from the other teams",
-    "INDIAN SOAP OPERA: Deliver a daily work problem like a dramatic daily soap character with triple gasps and shock reactions",
-    "CRICKET COMMENTARY: Give energetic IPL-style commentary on someone typing an email or sipping water",
-    "HOLLYWOOD TRAILER: Narrate a teammate walking to the water cooler in an epic Hollywood action movie trailer voice",
-    "CUSTOMER CARE BOT: Imitate an automated customer support voice bot that starts glitching into funny Hindi/English errors",
-    "EMOTIONAL SPEECH: Deliver a dramatic Oscar-winning acceptance speech thanking your office chair for supporting you",
-    "FROZEN SCREEN: Act like your video and audio are buffering in slow-motion during an important client presentation",
-    "SILENT MIME: Express 'Finding out tomorrow is a working Saturday' using only facial expressions without making a sound",
-    "BREAKING NEWS: Deliver an urgent breaking-news TV bulletin about someone eating the last biscuit in the pantry",
-    "LUXURY BRAND: Sell a single paper clip or rubber band as a ₹50,000 Italian designer fashion accessory",
+POPULAR_BUILTIN_DARES = [
+    "Sell your coffee mug in Naaptol TV host style in 15 seconds!",
+    "Speak in an enthusiastic cartoon voice for the next 15 seconds!",
+    "Do your best evil movie villain laugh loudly on webcam!",
+    "Show the weirdest object on your desk to your camera!",
+    "Give a 15-second IPL cricket commentary on someone typing!",
+    "Say 'Mera code crash ho gaya' with 3 dramatic TV serial gasps!",
+    "Pitch an imaginary Bluetooth Samosa to the team in 15 seconds!",
+    "Recreate your most-used emoji using only your face on camera!",
+    "Speak for 15 seconds without blinking at the webcam!",
+    "Sing 'Twinkle Twinkle' in a deep Hollywood movie villain voice!",
+    "Act like your video is frozen and buffering for 10 seconds!",
+    "Deliver a 15-second breaking news report on your messy desk!",
+    "Give a dramatic acceptance speech thanking your laptop charger!",
+    "Imitate an automated customer care voice bot glitching out!",
+    "Explain your job in 15 seconds as if explaining to a 5-year-old!",
+    "Pretend you're a robot attending its very first office meeting!",
 ]
 
 
 def get_truth(exclude: list[str]) -> tuple[dict, str]:
     global _recent_truths
     combined_exclude = list(dict.fromkeys(exclude + _recent_truths))[-50:]
-    ex_str = " | ".join(combined_exclude[:35]) if combined_exclude else "none"
-    theme = random.choice(TRUTH_THEMES)
+    ex_str = " | ".join(combined_exclude[:25]) if combined_exclude else "none"
 
-    data = chat_json(
-        TRUTH_SYSTEM,
-        (
-            f"Generate 1 unique, simple, hilarious office truth question. "
-            f"Focus topic for this round: {theme}. "
-            f"Do NOT copy any few-shot examples verbatim. "
-            f"STRICTLY AVOID repeating any of these previously asked questions: {ex_str}. "
-            f"Randomness seed: {time.time()}."
-        ),
-        max_tokens=180,
-        model=model_for("truth"),
-    )
-    prompt = str(data.get("question") or data.get("prompt", "")).strip()[:240]
-    category = str(data.get("category", "Truth")).strip()[:40]
-    if not prompt:
-        raise AIUnavailable("AI could not generate truth question — please try again.")
+    try:
+        data = chat_json(
+            TRUTH_SYSTEM,
+            (
+                f"Generate 1 unique, super short (under 12 words) virtual meeting truth question. "
+                f"STRICTLY AVOID repeating: {ex_str}. "
+                f"Randomness seed: {time.time()}."
+            ),
+            max_tokens=80,
+            model=model_for("truth"),
+        )
+        prompt = str(data.get("question") or data.get("prompt", "")).strip()[:140]
+        if prompt and prompt not in combined_exclude:
+            _recent_truths.append(prompt)
+            if len(_recent_truths) > MAX_HISTORY:
+                _recent_truths = _recent_truths[-MAX_HISTORY:]
+            return {"prompt": prompt, "category": "Truth", "type": "truth"}, "ai"
+    except Exception:
+        pass
 
+    available = [t for t in POPULAR_BUILTIN_TRUTHS if t not in combined_exclude]
+    if not available:
+        available = POPULAR_BUILTIN_TRUTHS
+    prompt = random.choice(available)
     _recent_truths.append(prompt)
-    if len(_recent_truths) > MAX_HISTORY:
-        _recent_truths = _recent_truths[-MAX_HISTORY:]
-
-    return {"prompt": prompt, "category": category, "type": "truth"}, "ai"
+    return {"prompt": prompt, "category": "Truth", "type": "truth"}, "builtin"
 
 
 def get_dare(exclude: list[str]) -> tuple[dict, str]:
     global _recent_dares
     combined_exclude = list(dict.fromkeys(exclude + _recent_dares))[-50:]
-    ex_str = " | ".join(combined_exclude[:35]) if combined_exclude else "none"
-    theme = random.choice(DARE_THEMES)
+    ex_str = " | ".join(combined_exclude[:25]) if combined_exclude else "none"
 
-    data = chat_json(
-        DARE_SYSTEM,
-        (
-            f"Generate 1 unique, lighthearted, safe office dare challenge doable in 15-20 seconds. "
-            f"REMINDER: NO DANCE TASKS! Focus on hilarious roleplay, teleshopping pitches, or comedy. "
-            f"Focus theme for this round: {theme}. "
-            f"Do NOT copy any few-shot examples verbatim. "
-            f"STRICTLY AVOID repeating any of these previously played dares: {ex_str}. "
-            f"Randomness seed: {time.time()}."
-        ),
-        max_tokens=180,
-        model=model_for("dare"),
-    )
-    prompt = str(data.get("prompt") or data.get("question", "")).strip()[:240]
-    category = str(data.get("category", "Dare")).strip()[:40]
-    if not prompt:
-        raise AIUnavailable("AI could not generate dare — please try again.")
+    try:
+        data = chat_json(
+            DARE_SYSTEM,
+            (
+                f"Generate 1 unique, super short (under 12 words) webcam/mic virtual meeting dare. "
+                f"NO dancing! Desk/mic only. "
+                f"STRICTLY AVOID repeating: {ex_str}. "
+                f"Randomness seed: {time.time()}."
+            ),
+            max_tokens=80,
+            model=model_for("dare"),
+        )
+        prompt = str(data.get("prompt") or data.get("question", "")).strip()[:140]
+        if prompt and prompt not in combined_exclude:
+            _recent_dares.append(prompt)
+            if len(_recent_dares) > MAX_HISTORY:
+                _recent_dares = _recent_dares[-MAX_HISTORY:]
+            return {"prompt": prompt, "category": "Dare", "type": "dare"}, "ai"
+    except Exception:
+        pass
 
+    available = [d for d in POPULAR_BUILTIN_DARES if d not in combined_exclude]
+    if not available:
+        available = POPULAR_BUILTIN_DARES
+    prompt = random.choice(available)
     _recent_dares.append(prompt)
-    if len(_recent_dares) > MAX_HISTORY:
-        _recent_dares = _recent_dares[-MAX_HISTORY:]
-
-    return {"prompt": prompt, "category": category, "type": "dare"}, "ai"
+    return {"prompt": prompt, "category": "Dare", "type": "dare"}, "builtin"
