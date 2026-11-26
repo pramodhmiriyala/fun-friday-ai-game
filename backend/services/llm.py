@@ -50,11 +50,13 @@ def model_for(game: str) -> str:
     return os.getenv("OPENAI_MODEL", "").strip() or "gpt-4o"
 
 
-def chat_json(system: str, user: str, max_tokens: int = 700, temperature: float = 1.0, model: str | None = None) -> dict:
+def chat_json(system: str, user: str, max_tokens: int = 700, temperature: float = 1.0, model: str | None = None, timeout: float | None = None) -> dict:
     """Single JSON-mode completion with a hard token cap (cost control)."""
     client = _get_client()
     m = model or MODEL
     kwargs = {"max_completion_tokens": max_tokens}
+    if timeout:
+        kwargs["timeout"] = timeout
     if not m.startswith(("gpt-3", "gpt-4")):
         # Reasoning models (o1, o3-mini): reasoning tokens use budget and only default temperature is allowed.
         kwargs["max_completion_tokens"] = max_tokens * 4 + 500

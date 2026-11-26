@@ -20,9 +20,9 @@ _refilling_truth = False
 _refilling_dare = False
 
 
-def refill_pools():
-    _refill_truth()
-    _refill_dare()
+def chat_json_fast(system: str, user: str, model_name: str, timeout_sec: float = 3.5) -> dict:
+    """Fast call with strict 3.5s timeout so live games never lag or freeze."""
+    return chat_json(system, user, max_tokens=80, model=model_name, timeout=timeout_sec)
 
 
 def _refill_truth():
@@ -36,7 +36,7 @@ def _refill_truth():
         global _refilling_truth
         try:
             ex_str = " | ".join(_recent_truths[-25:]) if _recent_truths else "none"
-            data = chat_json(
+            data = chat_json_fast(
                 TRUTH_SYSTEM,
                 f"Generate 1 unique, super short (under 12 words) virtual meeting truth question. STRICTLY AVOID: {ex_str}. Randomness seed: {time.time()}.",
                 max_tokens=80,
@@ -67,11 +67,12 @@ def _refill_dare():
         global _refilling_dare
         try:
             ex_str = " | ".join(_recent_dares[-25:]) if _recent_dares else "none"
-            data = chat_json(
+            data = chat_json_fast(
                 DARE_SYSTEM,
                 f"Generate 1 unique, super short (under 12 words) webcam/mic virtual meeting dare. NO dancing! Desk only. STRICTLY AVOID: {ex_str}. Randomness seed: {time.time()}.",
                 max_tokens=80,
-                model=model_for("dare"),
+                model_name=model_for("dare"),
+            timeout_sec=3.0,
             )
             prompt = str(data.get("prompt") or data.get("question", "")).strip()[:140]
             if prompt:
@@ -213,15 +214,15 @@ def get_truth(exclude: list[str]) -> tuple[dict, str]:
     ex_str = " | ".join(combined_exclude[:25]) if combined_exclude else "none"
 
     try:
-        data = chat_json(
+        data = chat_json_fast(
             TRUTH_SYSTEM,
             (
                 f"Generate 1 unique, super short (under 12 words) virtual meeting truth question. "
                 f"STRICTLY AVOID repeating: {ex_str}. "
                 f"Randomness seed: {time.time()}."
             ),
-            max_tokens=80,
-            model=model_for("truth"),
+            model_name=model_for("truth"),
+            timeout_sec=3.0,
         )
         prompt = str(data.get("question") or data.get("prompt", "")).strip()[:140]
         if prompt and prompt not in combined_exclude:
@@ -256,7 +257,7 @@ def get_dare(exclude: list[str]) -> tuple[dict, str]:
     ex_str = " | ".join(combined_exclude[:25]) if combined_exclude else "none"
 
     try:
-        data = chat_json(
+        data = chat_json_fast(
             DARE_SYSTEM,
             (
                 f"Generate 1 unique, super short (under 12 words) webcam/mic virtual meeting dare. "
@@ -265,7 +266,8 @@ def get_dare(exclude: list[str]) -> tuple[dict, str]:
                 f"Randomness seed: {time.time()}."
             ),
             max_tokens=80,
-            model=model_for("dare"),
+            model_name=model_for("dare"),
+            timeout_sec=3.0,
         )
         prompt = str(data.get("prompt") or data.get("question", "")).strip()[:140]
         if prompt and prompt not in combined_exclude:
