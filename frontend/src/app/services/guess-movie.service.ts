@@ -50,6 +50,7 @@ interface GuessHostState {
   cluesCount: number;
   movie: MovieInfo | null;
   winner: string | null;
+  awardedPrize?: number;
   used: string[];
 }
 
@@ -68,12 +69,14 @@ export class GuessMovieService {
     cluesCount: 0,
     movie: null,
     winner: null,
+    awardedPrize: 0,
     used: [],
   });
 
   readonly loading = signal(false);
   readonly thinking = signal(false);
   readonly error = signal<string | null>(null);
+  readonly pendingVerdict = signal<{ movie: MovieInfo; prize: number; reply: string } | null>(null);
 
   /** Starts at 25 pts, -3 per extra clue/question used (min 10 pts). */
   readonly prize = computed(() => {
@@ -115,6 +118,7 @@ export class GuessMovieService {
         cluesCount: 1,
         movie: null,
         winner: null,
+        awardedPrize: 0,
         messages: [
           { role: 'ai', kind: 'clue', label: 'Clue #1', text: res.clue },
         ],
@@ -163,6 +167,7 @@ export class GuessMovieService {
           questionsLeft: res.questions_left,
           movie: res.movie ?? null,
           winner: winnerId,
+          awardedPrize: this.prize(),
           used: [...st.used, res.movie!.title].slice(-60),
           messages: [...st.messages, { role: 'ai', kind: 'win', label: '🎬 Movie Host', text: res.reply }],
         }));
@@ -217,34 +222,90 @@ export class GuessMovieService {
     }
   }
 
-  /** Only the logged-in host can reveal the answer (asks for the host password otherwise). */
-  reveal() {
-    this.auth.gate(() => this.doReveal());
-  }
-
-  private async doReveal() {
+  /** Open Host Verdict Modal (gates for host password if needed). */
+  openHostVerdict() {
     const s = this.state();
     if (s.phase !== 'live' || !s.sessionId || this.thinking()) return;
-    this.thinking.set(true);
-    this.error.set(null);
-    try {
-      const res = await this.api.guessMovieReveal(s.sessionId, this.auth.token());
+    this.auth.gate(async () => {
+      this.thinking.set(true);
+      this.error.set(null);
+      try {
+        const res = await this.api.guessMovieReveal(s.sessionId!, this.auth.token());
+        this.pendingVerdict.set({
+          movie: res.movie,
+          prize: this.prize(),
+          reply: res.reply,
+        });
+      } catch (e) {
+        this.error.set((e as Error).message);
+      } finally {
+        this.thinking.set(false);
+      }
+    });
+  }
+
+  closeHostVerdict() {
+    this.pendingVerdict.set(null);
+  }
+
+  confirmVerdict(guessed: boolean) {
+    const pv = this.pendingVerdict();
+    if (!pv) return;
+    this.pendingVerdict.set(null);
+
+    const teamId = this.team.activeTeamId();
+    const teamName = this.team.activeTeam()?.name ?? 'Active Team';
+
+    if (guessed) {
+      this.scoring.award(teamId, pv.prize, 'guess', `Guessed "${pv.movie.title}"`);
+      this.sound.correct();
+      this.confetti.cannons(140);
+      this.state.update(st => ({
+        ...st,
+        phase: 'solved',
+        movie: pv.movie,
+        winner: teamId,
+        awardedPrize: pv.prize,
+        used: [...st.used, pv.movie.title].slice(-60),
+        messages: [
+          ...st.messages,
+          {
+            role: 'ai',
+            kind: 'win',
+            label: '🎬 Movie Host',
+            text: `🎉 Correct! ${teamName} guessed "${pv.movie.title}" (${pv.movie.year || ''}) and scores +${pv.prize} pts! 🏆`,
+          },
+        ],
+      }));
+    } else {
       this.sound.reveal();
       this.state.update(st => ({
         ...st,
         phase: 'revealed',
-        movie: res.movie,
-        used: [...st.used, res.movie.title].slice(-60),
-        messages: [...st.messages, { role: 'ai', kind: 'reveal', label: '🤖 AI Host', text: res.reply }],
+        movie: pv.movie,
+        winner: null,
+        awardedPrize: 0,
+        used: [...st.used, pv.movie.title].slice(-60),
+        messages: [
+          ...st.messages,
+          {
+            role: 'ai',
+            kind: 'reveal',
+            label: '🤖 AI Host',
+            text: pv.reply || `🎬 The secret movie was "${pv.movie.title}"! 0 pts awarded this round. Better luck next time! 🍿`,
+          },
+        ],
       }));
-    } catch (e) {
-      this.error.set((e as Error).message);
-    } finally {
-      this.thinking.set(false);
     }
   }
 
+  /** Backwards compatibility: trigger host verdict popup. */
+  reveal() {
+    this.openHostVerdict();
+  }
+
   resetGame() {
+    this.pendingVerdict.set(null);
     this.state.update(s => ({
       ...s,
       round: 0,
@@ -255,6 +316,7 @@ export class GuessMovieService {
       cluesCount: 0,
       movie: null,
       winner: null,
+      awardedPrize: 0,
       used: [],
     }));
   }

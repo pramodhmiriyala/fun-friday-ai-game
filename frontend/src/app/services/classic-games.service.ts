@@ -26,7 +26,16 @@ interface ClassicState {
     usedQs: string[];
   };
   puzzle: { order: number[]; pos: number; phase: 'idle' | 'live' | 'revealed'; open: number[]; showHint: boolean; tick: number };
-  person: { people: PersonCard[]; pos: number; clues: number; revealed: boolean; usedNames: string[] };
+  person: {
+    people: PersonCard[];
+    pos: number;
+    clues: number;
+    revealed: boolean;
+    usedNames: string[];
+    verdict?: 'correct' | 'missed' | null;
+    awardedPts?: number;
+    winnerTeam?: string | null;
+  };
 }
 
 const RAPID_SECONDS = 60;
@@ -37,7 +46,7 @@ export class ClassicGamesService {
   readonly state = persisted<ClassicState>('classic_v3', {
     rapid:  { questions: [], pos: 0, phase: 'idle', correct: 0, wrong: 0, selected: null, usedQs: [] },
     puzzle: { order: shuffled(PUZZLES.length), pos: 0, phase: 'idle', open: [], showHint: false, tick: 0 },
-    person: { people: [], pos: 0, clues: 1, revealed: false, usedNames: [] },
+    person: { people: [], pos: 0, clues: 1, revealed: false, verdict: null, awardedPts: 0, winnerTeam: null, usedNames: [] },
   });
 
   readonly rapidLoading  = signal(false);
@@ -120,7 +129,7 @@ export class ClassicGamesService {
       const allCurrent = this.state().person.people.map(x => x.name).filter(Boolean);
       const combinedExclude = Array.from(new Set([...this.state().person.usedNames, ...allCurrent])).slice(-50);
       const r = await this.api.personCards(combinedExclude);
-      this.patch('person', { people: r.people, pos: 0, clues: 1, revealed: false, usedNames: combinedExclude });
+      this.patch('person', { people: r.people, pos: 0, clues: 1, revealed: false, verdict: null, awardedPts: 0, winnerTeam: null, usedNames: combinedExclude });
     } catch (e) { this.personError.set((e as Error).message); }
     finally { this.personLoading.set(false); }
   }
@@ -225,21 +234,29 @@ export class ClassicGamesService {
   personSolve(teamId: string | null = this.team.activeTeamId()) {
     if (this.state().person.revealed) return;
     const name = this.person()?.name ?? '';
-    this.scoring.award(teamId, this.personPrize(), 'person', name);
+    const prize = this.personPrize();
+    const teamName = this.team.activeTeam()?.name ?? 'Team';
+    this.scoring.award(teamId, prize, 'person', name);
     this.sound.correct();
     this.confetti.burst(0.5, 0.5, 120);
     this.patch('person', {
       revealed: true,
+      verdict: 'correct',
+      awardedPts: prize,
+      winnerTeam: teamName,
       usedNames: name ? [...this.state().person.usedNames, name].slice(-30) : this.state().person.usedNames,
     });
   }
-  /** Only the logged-in host can reveal the answer. */
+  /** Reveal without awarding points. */
   personReveal() {
     this.auth.gate(() => {
       this.sound.reveal();
       const name = this.person()?.name ?? '';
       this.patch('person', {
         revealed: true,
+        verdict: 'missed',
+        awardedPts: 0,
+        winnerTeam: null,
         usedNames: name ? [...this.state().person.usedNames, name].slice(-40) : this.state().person.usedNames,
       });
     });
@@ -262,13 +279,13 @@ export class ClassicGamesService {
       if (this.nextTeamCards.length > 0) {
         const fresh = this.nextTeamCards;
         this.nextTeamCards = [];
-        this.patch('person', { people: fresh, pos: 0, clues: 1, revealed: false, usedNames: updatedUsed });
+        this.patch('person', { people: fresh, pos: 0, clues: 1, revealed: false, verdict: null, awardedPts: 0, winnerTeam: null, usedNames: updatedUsed });
       } else {
-        this.patch('person', { usedNames: updatedUsed });
+        this.patch('person', { usedNames: updatedUsed, verdict: null, awardedPts: 0, winnerTeam: null });
         this.fetchPersonCards();
       }
     } else {
-      this.patch('person', { pos: nextPos, clues: 1, revealed: false, usedNames: updatedUsed });
+      this.patch('person', { pos: nextPos, clues: 1, revealed: false, verdict: null, awardedPts: 0, winnerTeam: null, usedNames: updatedUsed });
     }
   }
 }

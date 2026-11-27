@@ -110,13 +110,22 @@ import { HostAuthService } from '../services/host-auth.service';
                 @if (pr.revealed) {
                   <div class="a pop-in display grad-text">{{ person.name }}</div>
                   @if (person.funny_reveal) { <div class="muted mt-2 pop-in">😂 {{ person.funny_reveal }}</div> }
+                  @if (pr.verdict === 'correct') {
+                    <div class="verdict-banner won pop-in mt-3">
+                      🎉 <b>{{ pr.winnerTeam || teams.activeTeam()?.name || 'Team' }}</b> guessed it! <span class="badge-pts">+{{ pr.awardedPts || c.personPrize() }} pts</span> awarded!
+                    </div>
+                  } @else if (pr.verdict === 'missed') {
+                    <div class="verdict-banner missed pop-in mt-3">
+                      ❌ Not guessed · <b>0 pts</b> awarded. Better luck next riddle!
+                    </div>
+                  }
                 } @else { <div class="ic sil">🕵️</div> }
-                <div class="muted">Prize now: <b class="text-white">{{ c.personPrize() }} pts</b></div>
+                <div class="muted mt-2">Prize now: <b class="text-white">{{ c.personPrize() }} pts</b></div>
                 <div class="actions">
                   @if (!pr.revealed) {
                     <button class="btn-neon btn-cyan" (click)="c.personClue()" [disabled]="pr.clues >= person.clues.length" id="btn-person-clue">➕ Next clue</button>
-                    <button class="btn-neon btn-green" (click)="c.personSolve()" id="btn-person-solve">✅ Team guessed it</button>
-                    <button class="btn-neon btn-pink" (click)="c.personReveal()" id="btn-person-reveal">{{ auth.isHost() ? '👁 Reveal' : '🔒 Reveal (host)' }}</button>
+                    <button class="btn-neon btn-green" (click)="openPersonVerdict()" id="btn-person-solve">✅ Team guessed it</button>
+                    <button class="btn-neon btn-pink" (click)="openPersonVerdict()" id="btn-person-reveal">{{ auth.isHost() ? '👁 Reveal (Host)' : '🔒 Reveal (Host)' }}</button>
                   } @else {
                     @if (pr.pos + 1 >= (c.state().person.people.length || 5)) {
                       <div class="badge-pill my-3">🎉 5 Riddles completed for {{ teams.activeTeam()?.name ?? 'this team' }}! Select the next team above, then start:</div>
@@ -135,6 +144,49 @@ import { HostAuthService } from '../services/host-auth.service';
             </div>
           </div>
         }
+      }
+
+      <!-- Host Riddle Verdict Confirmation Modal -->
+      @if (showPersonVerdictModal() && c.person(); as person) {
+        <div class="modal-backdrop pop-in" (click)="closePersonVerdict()">
+          <div class="modal-card glass-pad" (click)="$event.stopPropagation()">
+            <div class="vm-badge">🕵️ HOST CONFIRMATION · WHO AM I?</div>
+            <h3 class="vm-title">Riddle Solution</h3>
+
+            <div class="vm-secret-card">
+              <div class="vm-secret-lbl">SECRET ANSWER</div>
+              <div class="vm-secret-title grad-text">{{ person.name }}</div>
+              @if (person.funny_reveal) {
+                <div class="vm-secret-funny">😂 {{ person.funny_reveal }}</div>
+              }
+            </div>
+
+            <div class="vm-body">
+              <div class="vm-team-row">
+                Active Team: <b class="text-white">{{ teams.activeTeam()?.name ?? 'Active Team' }}</b>
+              </div>
+              <div class="vm-prize-row">
+                Prize at stake: <b class="text-gold">{{ c.personPrize() }} pts</b>
+                <span class="muted small ms-1">(Clue {{ c.state().person.clues }} of {{ person.clues.length }})</span>
+              </div>
+              <p class="vm-question">
+                Did <b>{{ teams.activeTeam()?.name ?? 'the active team' }}</b> guess the riddle correctly?
+              </p>
+            </div>
+
+            <div class="vm-actions">
+              <button class="btn-neon btn-green vm-btn" (click)="confirmPersonVerdict(true)" id="btn-vm-person-yes">
+                ✅ Yes, Team Guessed It! (+{{ c.personPrize() }} pts)
+              </button>
+              <button class="btn-neon btn-pink vm-btn" (click)="confirmPersonVerdict(false)" id="btn-vm-person-no">
+                ❌ No / Wrong Answer (0 pts)
+              </button>
+              <button class="btn-ghost vm-btn-cancel" (click)="closePersonVerdict()" id="btn-vm-person-cancel">
+                Cancel (Keep Guessing)
+              </button>
+            </div>
+          </div>
+        </div>
       }
     </section>
   `,
@@ -176,6 +228,29 @@ import { HostAuthService } from '../services/host-auth.service';
     .clues { display: grid; gap: .7rem; max-width: 760px; margin: 1rem auto; }
     .clue { padding: .9rem 1.2rem; text-align: left; font-size: 1.2rem; display: flex; gap: 1rem; align-items: center; }
     .cn { width: 34px; height: 34px; border-radius: 50%; background: var(--grad); display: grid; place-items: center; font-weight: 800; flex: none; }
+
+    /* Verdict Banner & Modal */
+    .verdict-banner { padding: .9rem 1.4rem; border-radius: 16px; font-weight: 800; font-size: 1.1rem; max-width: 580px; margin: 1.2rem auto 0; text-align: center; }
+    .verdict-banner.won { background: rgba(34, 197, 94, 0.18); border: 2px solid #22c55e; color: #86efac; box-shadow: 0 0 30px rgba(34, 197, 94, 0.35); }
+    .verdict-banner.missed { background: rgba(239, 68, 68, 0.18); border: 2px solid #ef4444; color: #fca5a5; box-shadow: 0 0 25px rgba(239, 68, 68, 0.3); }
+    .badge-pts { display: inline-block; background: #22c55e; color: #052e16; font-weight: 900; padding: .15rem .6rem; border-radius: 8px; margin: 0 .2rem; }
+
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(7, 4, 26, 0.84); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; display: grid; place-items: center; padding: 1.2rem; }
+    .modal-card { width: 100%; max-width: 540px; background: rgba(18, 12, 46, 0.95); border: 2px solid var(--purple); border-radius: 24px; box-shadow: 0 0 50px rgba(168, 85, 247, 0.45); text-align: center; }
+    .vm-badge { display: inline-block; font-size: .78rem; font-weight: 800; letter-spacing: .15em; color: var(--cyan); background: rgba(34, 211, 238, 0.12); border: 1px solid rgba(34, 211, 238, 0.3); padding: .3rem .9rem; border-radius: 999px; margin-bottom: .8rem; }
+    .vm-title { font-size: 1.45rem; font-weight: 900; margin-bottom: 1rem; color: #fff; }
+    .vm-secret-card { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 18px; padding: 1.2rem; margin-bottom: 1.2rem; }
+    .vm-secret-lbl { font-size: .75rem; letter-spacing: .2em; font-weight: 800; color: var(--muted); }
+    .vm-secret-title { font-size: clamp(1.6rem, 3.5vw, 2.3rem); font-weight: 900; margin: .3rem 0; }
+    .vm-secret-funny { font-size: .95rem; color: #fde047; margin-top: .4rem; }
+    .vm-body { margin-bottom: 1.4rem; }
+    .vm-team-row { font-size: 1.1rem; margin-bottom: .3rem; }
+    .vm-prize-row { font-size: 1.15rem; margin-bottom: .8rem; }
+    .text-gold { color: var(--gold); }
+    .vm-question { font-size: 1.18rem; font-weight: 700; color: #fff; margin: .8rem 0 0; }
+    .vm-actions { display: flex; flex-direction: column; gap: .75rem; }
+    .vm-btn { width: 100%; padding: .9rem 1.4rem; font-size: 1.05rem; }
+    .vm-btn-cancel { width: 100%; margin-top: .2rem; }
   `,
 })
 export class ClassicGameComponent implements OnInit {
@@ -186,7 +261,27 @@ export class ClassicGameComponent implements OnInit {
   readonly id = signal('rapid');
   readonly nine = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   readonly letters = ['A', 'B', 'C', 'D'];
+  readonly showPersonVerdictModal = signal(false);
   @Input() embedded = false;
+
+  openPersonVerdict() {
+    this.auth.gate(() => {
+      this.showPersonVerdictModal.set(true);
+    });
+  }
+
+  closePersonVerdict() {
+    this.showPersonVerdictModal.set(false);
+  }
+
+  confirmPersonVerdict(guessed: boolean) {
+    this.showPersonVerdictModal.set(false);
+    if (guessed) {
+      this.c.personSolve();
+    } else {
+      this.c.personReveal();
+    }
+  }
   @Input() set gameId(v: string) {
     this.id.set(v);
     this.ensureLoaded(v);

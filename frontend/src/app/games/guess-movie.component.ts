@@ -101,9 +101,13 @@ import { HostAuthService } from '../services/host-auth.service';
                     <div class="muted">
                       @if (mv.year) { {{ mv.year }} · } {{ mv.language }}
                     </div>
-                    @if (s().phase === 'solved' && s().winner) {
+                    @if (s().phase === 'solved') {
                       <div class="verdict">
-                        🎉 {{ teams.get(s().winner!)?.name }} scores +{{ g.prize() }} pts!
+                        🎉 {{ teams.get(s().winner || '')?.name || teams.activeTeam()?.name }} scores +{{ s().awardedPrize || g.prize() }} pts!
+                      </div>
+                    } @else if (s().phase === 'revealed') {
+                      <div class="verdict text-muted mt-2">
+                        ❌ Not guessed · 0 pts awarded this round
                       </div>
                     }
                   </div>
@@ -149,8 +153,14 @@ import { HostAuthService } from '../services/host-auth.service';
                       id="btn-guess-clue">
                 💡 Ask AI for Another Clue
               </button>
+              <button class="btn-neon btn-green"
+                      (click)="g.openHostVerdict()"
+                      [disabled]="g.thinking()"
+                      id="btn-guess-verdict">
+                ✅ Team Guessed It
+              </button>
               <button class="btn-neon btn-pink"
-                      (click)="g.reveal()"
+                      (click)="g.openHostVerdict()"
                       [disabled]="g.thinking()"
                       id="btn-guess-reveal">
                 {{ auth.isHost() ? '👁 Reveal Movie' : '🔒 Reveal Movie (host)' }}
@@ -195,6 +205,50 @@ import { HostAuthService } from '../services/host-auth.service';
           </div>
         </div>
       </div>
+
+      <!-- Host Movie Verdict Confirmation Modal -->
+      @if (g.pendingVerdict(); as pv) {
+        <div class="modal-backdrop pop-in" (click)="g.closeHostVerdict()">
+          <div class="modal-card glass-pad" (click)="$event.stopPropagation()">
+            <div class="vm-badge">🎬 HOST CONFIRMATION · GUESS THE MOVIE</div>
+            <h3 class="vm-title">Secret Movie Solution</h3>
+
+            <div class="vm-secret-card">
+              <div class="vm-secret-lbl">SECRET MOVIE</div>
+              <div class="vm-secret-title grad-text">{{ pv.movie.title }}</div>
+              <div class="vm-secret-meta">
+                @if (pv.movie.year) { <span>📅 {{ pv.movie.year }}</span> · }
+                <span>🗣 {{ pv.movie.language }}</span>
+              </div>
+            </div>
+
+            <div class="vm-body">
+              <div class="vm-team-row">
+                Active Team: <b class="text-white">{{ teams.activeTeam()?.name ?? 'Active Team' }}</b>
+              </div>
+              <div class="vm-prize-row">
+                Bounty Prize: <b class="text-gold">{{ pv.prize }} pts</b>
+                <span class="muted small ms-1">({{ s().questionsLeft }} questions left)</span>
+              </div>
+              <p class="vm-question">
+                Did <b>{{ teams.activeTeam()?.name ?? 'the active team' }}</b> guess the movie correctly?
+              </p>
+            </div>
+
+            <div class="vm-actions">
+              <button class="btn-neon btn-green vm-btn" (click)="g.confirmVerdict(true)" id="btn-vm-movie-yes">
+                ✅ Yes, Team Guessed It! (+{{ pv.prize }} pts)
+              </button>
+              <button class="btn-neon btn-pink vm-btn" (click)="g.confirmVerdict(false)" id="btn-vm-movie-no">
+                ❌ No / Did Not Guess (0 pts)
+              </button>
+              <button class="btn-ghost vm-btn-cancel" (click)="g.closeHostVerdict()" id="btn-vm-movie-cancel">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      }
     </section>
   `,
   styles: `
@@ -265,6 +319,24 @@ import { HostAuthService } from '../services/host-auth.service';
     .ht-list { padding-left: 1.2rem; display: flex; flex-direction: column; gap: .4rem; font-size: .9rem; }
     .pop-in { animation: popIn .35s cubic-bezier(.34,1.56,.64,1) both; }
     @keyframes popIn { from { opacity:0; transform: scale(.92) translateY(8px); } to { opacity:1; transform:none; } }
+
+    /* Host Movie Verdict Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(7, 4, 26, 0.84); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; display: grid; place-items: center; padding: 1.2rem; }
+    .modal-card { width: 100%; max-width: 540px; background: rgba(18, 12, 46, 0.95); border: 2px solid var(--purple); border-radius: 24px; box-shadow: 0 0 50px rgba(168, 85, 247, 0.45); text-align: center; }
+    .vm-badge { display: inline-block; font-size: .78rem; font-weight: 800; letter-spacing: .15em; color: var(--cyan); background: rgba(34, 211, 238, 0.12); border: 1px solid rgba(34, 211, 238, 0.3); padding: .3rem .9rem; border-radius: 999px; margin-bottom: .8rem; }
+    .vm-title { font-size: 1.45rem; font-weight: 900; margin-bottom: 1rem; color: #fff; }
+    .vm-secret-card { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 18px; padding: 1.2rem; margin-bottom: 1.2rem; }
+    .vm-secret-lbl { font-size: .75rem; letter-spacing: .2em; font-weight: 800; color: var(--muted); }
+    .vm-secret-title { font-size: clamp(1.6rem, 3.5vw, 2.3rem); font-weight: 900; margin: .3rem 0; }
+    .vm-secret-meta { font-size: .95rem; color: #cbd5e1; font-weight: 700; margin-top: .3rem; }
+    .vm-body { margin-bottom: 1.4rem; }
+    .vm-team-row { font-size: 1.1rem; margin-bottom: .3rem; }
+    .vm-prize-row { font-size: 1.15rem; margin-bottom: .8rem; }
+    .text-gold { color: var(--gold); }
+    .vm-question { font-size: 1.18rem; font-weight: 700; color: #fff; margin: .8rem 0 0; }
+    .vm-actions { display: flex; flex-direction: column; gap: .75rem; }
+    .vm-btn { width: 100%; padding: .9rem 1.4rem; font-size: 1.05rem; }
+    .vm-btn-cancel { width: 100%; margin-top: .2rem; }
   `,
 })
 export class GuessMovieComponent {
