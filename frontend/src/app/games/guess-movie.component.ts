@@ -208,7 +208,7 @@ import { HostAuthService } from '../services/host-auth.service';
 
       <!-- Host Movie Verdict Confirmation Modal -->
       @if (g.pendingVerdict(); as pv) {
-        <div class="modal-backdrop pop-in" (click)="g.closeHostVerdict()">
+        <div class="modal-backdrop pop-in">
           <div class="modal-card glass-pad" (click)="$event.stopPropagation()">
             <div class="vm-badge">🎬 HOST CONFIRMATION · GUESS THE MOVIE</div>
             <h3 class="vm-title">Secret Movie Solution</h3>
@@ -241,9 +241,6 @@ import { HostAuthService } from '../services/host-auth.service';
               </button>
               <button class="btn-neon btn-pink vm-btn" (click)="g.confirmVerdict(false)" id="btn-vm-movie-no">
                 ❌ No / Did Not Guess (0 pts)
-              </button>
-              <button class="btn-ghost vm-btn-cancel" (click)="g.closeHostVerdict()" id="btn-vm-movie-cancel">
-                Cancel
               </button>
             </div>
           </div>

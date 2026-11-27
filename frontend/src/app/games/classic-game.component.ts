@@ -148,7 +148,7 @@ import { HostAuthService } from '../services/host-auth.service';
 
       <!-- Host Riddle Verdict Confirmation Modal -->
       @if (showPersonVerdictModal() && c.person(); as person) {
-        <div class="modal-backdrop pop-in" (click)="closePersonVerdict()">
+        <div class="modal-backdrop pop-in">
           <div class="modal-card glass-pad" (click)="$event.stopPropagation()">
             <div class="vm-badge">🕵️ HOST CONFIRMATION · WHO AM I?</div>
             <h3 class="vm-title">Riddle Solution</h3>
@@ -180,9 +180,6 @@ import { HostAuthService } from '../services/host-auth.service';
               </button>
               <button class="btn-neon btn-pink vm-btn" (click)="confirmPersonVerdict(false)" id="btn-vm-person-no">
                 ❌ No / Wrong Answer (0 pts)
-              </button>
-              <button class="btn-ghost vm-btn-cancel" (click)="closePersonVerdict()" id="btn-vm-person-cancel">
-                Cancel (Keep Guessing)
               </button>
             </div>
           </div>
